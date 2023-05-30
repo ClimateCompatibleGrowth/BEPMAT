@@ -1,0 +1,2 @@
+﻿Name,Sub-Theme Name,Variable Name,Description,Time Period,Climate Model,RCP,Data Units,Recommended Renderer,Download URL,Thumbnail,File Identifier
+exclusion_2017,Exclusion Areas,Exclusion class,Exclusion class,n.a.,n.a.,n.a.,Class,Exclusion Areas,https://s3.eu-west-1.amazonaws.com/data.gaezdev.aws.fao.org/LR/excl/exclusion_2017.tif,,000000124

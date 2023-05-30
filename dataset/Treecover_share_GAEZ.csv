@@ -1,0 +1,2 @@
+﻿Name,Sub-Theme Name,Variable Name,Description,Time Period,Climate Model,RCP,Data Units,Recommended Renderer,Download URL,Thumbnail,File Identifier
+GLCSv11_04_5m,Land Cover,Tree-covered land,Tree-covered land,n.a.,n.a.,n.a.,%,Share of Class in Grid Cell,https://s3.eu-west-1.amazonaws.com/data.gaezdev.aws.fao.org/LR/lco/GLCSv11_04_5m.tif,,000000071
