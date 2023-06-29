@@ -102,3 +102,55 @@ body {
     margin: 0;
   }
   
+
+  .dropdowns {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Add this line to create space between elements */
+    margin-left: 20px;
+  }
+  
+  .dropdowns label {
+    margin-right: 10px;
+  }
+  
+  /* CSS for dropdown styling */
+  .select-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-right: 10px;
+    margin-left:2px;
+  }
+  
+  .select-wrapper::after {
+    content: "\f078";
+    font-family: "Font Awesome 5 Free";
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  
+  .select-wrapper select {
+    appearance: none;
+    background-color: #f8f9fa;
+    border: 1px solid #000000;
+    padding: 5px 30px 5px 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #495057;
+    width: 200px;
+  }
+  
+  /* CSS for submit button styling */
+  .submit-button {
+    display: inline-block;
+    padding: 5px 10px;
+    background-color: #343a40;
+    color: #fff;
+    border: 1px solid #000;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid #000; /* Add black border */
+  }
