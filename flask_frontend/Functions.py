@@ -3,7 +3,7 @@
 
 # In this notebook I will define all the functions which will be used in the project and in the other notebook I will show the methodology with states of Punjab and Kerala as examples.
 
-# In[36]:
+# In[4]:
 
 
 #Importing a few important libraries essential to the work.
@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-# In[37]:
+# In[5]:
 
 
 #Now I will upload all the csv files I will be using into dataframes
@@ -198,7 +198,7 @@ aez_classification = pd.read_csv("./dataset/Classificationzones57.csv")
 # |
 # 
 
-# In[38]:
+# In[6]:
 
 
 #Now importing the table in pandas format so that we can use it for geospatial analysis
@@ -257,7 +257,7 @@ columns = ['Crop', 'Residue Type', 'RPR', 'SAF', 'LHV (MJ/kg)']
 residue_values = pd.DataFrame(data, columns=columns)
 
 
-# In[39]:
+# In[7]:
 
 
 # Now that we have all the required data, I will create two functions which takes in the relevant input in terms of time
@@ -312,7 +312,7 @@ def get_actual_data_biomass_potential_crop(shapefile, time_period, water_supply,
     return final_potential*(10**12)
 
 
-# In[40]:
+# In[8]:
 
 
 unique_crops_actual = production_values['Crop'].unique()
@@ -356,7 +356,7 @@ def get_actual_data_biomass_potential_all(shapefile, time_period, water_supply):
 # 
 # I would also like to mention this does not include the marginal land and calculations for that will be done separately after removing the cropland as well. Also as of now the function only includes the crops whose future potential yield data exists.
 
-# In[69]:
+# In[9]:
 
 
 #Function doing as described above
@@ -371,6 +371,15 @@ merged_df = pd.merge(harvested_area, potential_yield, on='Crop', how='inner')
 unique_crops = merged_df['Crop'].unique()
 
 def future_residues_all(time_period, climate_model, rcp, water_supply_future, input_level, shapefile_path, water_supply_2010):
+    
+    print("time_period:", time_period)
+    print("climate_model:", climate_model)
+    print("RCP:", rcp)
+    print("water_supply_future:", water_supply_future)
+    print("input_level:", input_level)
+    
+    # Rest of the code...
+    
     filtered_harvested_area = harvested_area[(harvested_area['Time Period'] == 2010) &
                                              (harvested_area['Water Supply'] == water_supply_2010)]
     required_harvested_area = filtered_harvested_area[['Crop', 'Download URL']]
@@ -419,7 +428,7 @@ def future_residues_all(time_period, climate_model, rcp, water_supply_future, in
     return (net_sum)*(10**9)
 
 
-# In[42]:
+# In[10]:
 
 
 # We also wanted to create a function that does this for a single crop as well.
@@ -642,7 +651,7 @@ def future_residues_crop(crop, time_period, climate_model, rcp, water_supply_fut
 # - Miscanthus RPR/SAF & LHV: https://www.sciencedirect.com/science/article/pii/S1161030101001022. & https://www.researchgate.net/publication/338950136_Calorific_values_of_Miscanthus_x_giganteus_biomass_cultivated_under_suboptimal_conditions_in_marginal_soils            
 # - Para Rubber : None
 
-# In[47]:
+# In[11]:
 
 
 #The final crop data being added to a pandas dataframe:
@@ -782,7 +791,7 @@ all_residue_values = pd.DataFrame(data, columns=columns)
 # So in order to extract these various pixels we will first load the raster, then we will clip it according to the selected
 # shapefile. The clipping will result in a numpy array and not a clipped raster. The code for this step is as follows:
 
-# In[48]:
+# In[12]:
 
 
 def maskingwithshapefile(shapefile, raster_path):
@@ -794,7 +803,7 @@ def maskingwithshapefile(shapefile, raster_path):
     return clipped
 
 
-# In[49]:
+# In[13]:
 
 
 # Once we have this we will need to convert this array to raster in order to extract the pixels. There will be two seperate
@@ -855,7 +864,7 @@ def array_to_inmemory_raster_for_clipped(array, transform, crs, shapefile):
     return memory_file
 
 
-# In[50]:
+# In[14]:
 
 
 # FOR NON-CLIPPED:
@@ -884,7 +893,7 @@ def array_to_inmemory_raster_for_non_clipped(array, transform, crs):
     return memory_file
 
 
-# In[51]:
+# In[15]:
 
 
 #Once we have the rasters we are pretty much ready to extract specific pixels from it. The following functions will help us
@@ -930,7 +939,7 @@ def coordinates_and_threshold(raster_path, threshold):
     return df
 
 
-# In[52]:
+# In[16]:
 
 
 def clipper(shapefile, raster_path):
@@ -943,7 +952,7 @@ def clipper(shapefile, raster_path):
     return array_to_inmemory_raster_for_clipped(masked, transform_store, crs_store, shapefile)
 
 
-# In[53]:
+# In[17]:
 
 
 #Since both the above functions give us dataframes but we will need geodataframes containing the geometry column with the 
@@ -963,7 +972,7 @@ def convert_df_to_gdf(dataframe):
     return coordinates_gdf
 
 
-# In[54]:
+# In[18]:
 
 
 #Also since the crop data is in a lower resolution than the AEZ classsification and other data so we will also create a fn.
@@ -1026,7 +1035,7 @@ def resolution_converter_mode(raster_path):
     return array_to_inmemory_raster_for_non_clipped(reshaped_data, transform, crs_final)
 
 
-# In[55]:
+# In[19]:
 
 
 # After using the above defined functions of df to gdf conversion and finding out pixels above a certain threshold or having
@@ -1079,7 +1088,7 @@ def remove_pixels(raster_path, shapefile, geodataframe):
 # be directly used in the upcoming find_max_values function.
 
 
-# In[56]:
+# In[20]:
 
 
 #The following function is like the end function which will simply the maximum potential at each pixel and give us the value
@@ -1136,7 +1145,7 @@ def find_max_for_each_pixel_crop_and_values(time_period, climate_model, rcp, wat
     return max_values, max_crops
 
 
-# In[57]:
+# In[21]:
 
 
 #Additionally I also just wanted to show the crop with the maximum yield at each point in the graph so that we have an idea 
@@ -1185,7 +1194,7 @@ def find_max_yield_crop_and_values(time_period, climate_model, rcp, water_supply
     return max_values, max_crops
 
 
-# In[58]:
+# In[22]:
 
 
 # Now the only code we require is to store the harvested_area for each pixel somewhere so that we can basically accomodate
@@ -1231,7 +1240,7 @@ def get_net_harvested_area(shapefile, geodataframe):
 # potential in a particular future year, under a particle RCP and others.
 
 
-# In[59]:
+# In[23]:
 
 
 #So there are two ways of generating the available area.One is using an approximation formula accounting for the change in
@@ -1261,7 +1270,7 @@ def extract_pixel_area(raster_path, shapefile):
     return pixel_area
 
 
-# In[60]:
+# In[24]:
 
 
 def get_biomass_potential_for_marginal(shapefile,time_period, climate_model, rcp, water_supply_future,
@@ -1326,17 +1335,24 @@ def get_biomass_potential_for_marginal(shapefile,time_period, climate_model, rcp
 # In[61]:
 
 
-shapefile_iceland = "./shapefiles_india/gadm41_ISL_shp/gadm41_ISL_0.shp"
-iceland = gpd.read_file(shapefile_iceland)
-iceland.geometry
+import gadm
+from gadm import GADMDownloader
 
-shapefile_path = "./shapefiles_india/gadm41_IND_shp/gadm41_IND_1.shp"
-gdf = gpd.read_file(shapefile_path)
-punjab = gdf[gdf['NAME_1']=='Punjab']
-kerala = gdf[gdf['NAME_1']=='Kerala']
-rajasthan = gdf[gdf['NAME_1']=='Rajasthan']
-himachal_pradesh = gdf[gdf['NAME_1']=='Himachal Pradesh']
-mizoram = gdf[gdf['NAME_1']=='Mizoram']
+def shapefile_generator(country, province=None):
+    downloader = GADMDownloader(version="4.0")
+    
+    if province:
+        # Download shapefile for a specific province
+        ad_level = 1
+        country_name = country
+        gdf_country = downloader.get_shape_data_by_country_name(country_name=country_name, ad_level=ad_level)
+        gdf_province = gdf_country[gdf_country["NAME_1"] == province]
+        return gdf_province
+    else:
+        # Download shapefile for the entire country
+        ad_level = 0
+        gdf_country = downloader.get_shape_data_by_country_name(country_name=country, ad_level=ad_level)
+        return gdf_country
 
 
 # In[71]:
@@ -1412,7 +1428,7 @@ mizoram = gdf[gdf['NAME_1']=='Mizoram']
 #         dataset.write(colored_array, 1)
 
 
-# In[62]:
+# In[25]:
 
 
 import numpy as np
@@ -1458,7 +1474,7 @@ def graph_plotter_marginal(shapefile, climate_model, water_supply_future, input_
     return array_for_max_potentials,array_for_max_crops,array_for_max_yield_crop
 
 
-# In[63]:
+# In[26]:
 
 
 # Comes handy in a lot of situations
@@ -1480,7 +1496,7 @@ with rasterio.open(potential_yield.iloc[2,14].strip()) as src:
 
 # Potential crop RPR errors based on checks: Pasture Legumes.
 
-# In[65]:
+# In[27]:
 
 
 def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_level):
@@ -1512,29 +1528,9 @@ def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_
     plt.show()
 
 
-# In[71]:
-
-
-# graph_plotter_cropland(punjab, 'IPSL-CM5A-LR',
-#                        'Available water content of 200 mm/m (under irrigation conditions)','High')
-
-
-# In[83]:
-
-
-# import time 
-
-# start_time = time.time()
-# initial_exclusion = exclusion_areas.iloc[0,9].strip()
-    
-# final_exclusion_raster = resolution_converter_mode(initial_exclusion)
-
-# elapsed_time = time.time()-start_time
-# print(f'Elapsed time is:{elapsed_time}')
-
-
 # In[ ]:
 
 
-
+# graph_plotter_cropland(gdf, 'IPSL-CM5A-LR',
+#                         'Available water content of 200 mm/m (under irrigation conditions)','High')
 
