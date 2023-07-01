@@ -10,6 +10,27 @@
       margin-top: 20px;
     }
   </style>
+  <style>
+    .form-container {
+      margin-top: 20px;
+    }
+    .graph-container {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-top: 20px;
+      max-height: 500px; /* Set the maximum height for the graph container */
+      overflow-y: auto; /* Enable vertical scrolling if content exceeds the container height */
+      max-width: 1120px;
+    }
+    .graph-item {
+      margin-bottom: 20px;
+    }
+    .output-box {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
   <form action="/submit" method="POST">
@@ -79,9 +100,6 @@
             <!-- Add more options as needed -->
           </select>
         </div>
-        <div class="col-auto align-self-end">
-          <button type="submit" class="btn btn-dark">Submit</button>
-        </div>
       </div>
       <div class="row mt-3">
         <div class="col text-center">
@@ -90,6 +108,22 @@
             <option value="cropland">Cropland</option>
             <option value="marginal">Marginal Land</option>
           </select>
+        </div>
+      </div>
+    </div>
+    <div class="container graph-container">
+      {% if graph_image %}
+      <div class="graph-item">
+        <img src="data:image/png;base64,{{ graph_image }}" alt="Graph">
+      </div>
+      {% else %}
+      <p>No Graphs requested</p>
+      {% endif %}
+    </div>
+    <div class="container form-container">
+      <div class="row mt-3">
+        <div class="col-auto align-self-end">
+          <button type="submit" class="btn btn-dark">Submit</button>
         </div>
       </div>
     </div>

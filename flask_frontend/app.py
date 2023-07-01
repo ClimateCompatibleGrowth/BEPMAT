@@ -38,9 +38,9 @@ def home():
         fig_data.seek(0)
         fig_base64 = base64.b64encode(fig_data.getvalue()).decode('utf-8')
 
-        return render_template('result.html', graph_image=fig_base64)
+        return render_template('calculator.html', graph_image=fig_base64)
 
-    return render_template('calculator.html')
+    return render_template('calculator.html', graph_image=None)
 
 
 @app.route('/submit', methods=['POST'])
