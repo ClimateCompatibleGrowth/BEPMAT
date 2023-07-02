@@ -30,11 +30,37 @@
       padding: 10px;
       margin-top: 20px;
     }
+
+    .custom-box {
+      text-align: center;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      padding: 20px;
+      background-color: #ffffff;
+    }
+    
+    /* Set the width of the carousel */
+    #carouselExampleAutoplaying {
+      width: 1120px; /* Replace with your desired width */
+      margin: 0 auto; /* Center align the carousel */
+    }
+  
+    /* Set the width of the carousel controls */
+    .carousel-control-prev,
+    .carousel-control-next {
+      width: 50px; /* Replace with your desired width */
+    }
+    
+    /* Set the height of the carousel images */
+    #carouselExampleAutoplaying img {
+      height: 400px; /* Replace with your desired height */
+      object-fit: cover;
+    }
   </style>
 </head>
 <body>
   <form action="/submit" method="POST">
-    <nav class="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black navbar-light">
       <div class="container-fluid">
         <a class="navbar-brand" href="#">Biomass Mapping Tool</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,10 +69,10 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="#">Home</a>
+              <a class="nav-link active text-light" aria-current="page" href="#">Home</a>
             </li>
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" >
+              <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 Land Use
               </a>
               <ul class="dropdown-menu">
@@ -56,26 +82,71 @@
               </ul>
             </li>
             <li class="nav-item">
-              <a class="nav-link disabled">Documentation</a>
+              <a class="nav-link disabled text-light">Documentation</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-light" href="#">About Us</a>
             </li>
           </ul>
+          <img src="..\static/logo.png" alt="Logo" class="navbar-brand" style="height: 50px; width: 100px">
         </div>
       </div>
     </nav>
+  
+    <div class="container">
+      <div class="custom-box">
+        <h3 class="mb-4">Welcome to the Biomass Mapping tool</h3>
+        <p>Thank you for giving our tool a try! Our tool provides various different Biomass Potential calculation options and more
+          are being added soon. Please fill out the form below to get started. Stay tuned for more updates and features!
+        </p>
+        
+      </div>
+    </div>
 
+
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <div id="carouselContainer">
+            <div id="carouselExampleAutoplaying" class="carousel slide" data-bs-ride="carousel">
+              <div class="carousel-inner">
+                <div class="carousel-item active">
+                  <img src="../static/download.png" class="d-block w-100" alt="...">
+                </div>
+                <div class="carousel-item">
+                  <img src="../static/logo2.png" class="d-block w-100" alt="...">
+                </div>
+                <div class="carousel-item">
+                  <img src="../static/logo.png" class="d-block w-100" alt="...">
+                </div>
+              </div>
+              <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <!-- ...Existing HTML code... -->
     <div class="container form-container">
       <div class="row">
         <div class="col">
-          <label for="inputCountry" class="form-label">Country</label>
+          <label for="inputCountry" class="form-label"><strong>Country</strong></label>
           <input type="text" id="inputCountry" name="country" class="form-control" aria-label="Country" placeholder="Enter country name">
         </div>
         <div class="col">
-          <label for="inputProvince" class="form-label">Province</label>
+          <label for="inputProvince" class="form-label"><strong>Province</strong></label>
           <input type="text" id="inputProvince" name="province" class="form-control" aria-label="Province" placeholder="Enter province name">
         </div>
         <div class="col">
-          <label for="inputWaterSupply" class="form-label">Water Supply Future</label>
+          <label for="inputWaterSupply" class="form-label"><strong>Water Supply Future</strong></label>
           <select class="form-select" id="inputWaterSupply" name="water_supply_future" aria-label="Water Supply Future">
             <option value="Available water content of 200 mm/m (under irrigation conditions)">Available water content of 200 mm/m (under irrigation conditions)</option>
             <option value="Available water content of 200 mm/m (under rain-fed conditions)">Available water content of 200 mm/m (under rain-fed conditions)</option>
@@ -83,7 +154,7 @@
           </select>
         </div>
         <div class="col">
-          <label for="inputClimateModel" class="form-label">Climate Model</label>
+          <label for="inputClimateModel" class="form-label"><strong>Climate Model</strong></label>
           <select class="form-select" id="inputClimateModel" name="climate_model" aria-label="Climate Model" >
             <option value="GFDL-ESM2M">GFDL-ESM2M</option>
             <option value="NorESM1-M">NorESM1-M</option>
@@ -94,7 +165,7 @@
           </select>
         </div>
         <div class="col">
-          <label for="inputInputLevel" class="form-label">Input Level</label>
+          <label for="inputInputLevel" class="form-label"><strong>Input Level</strong></label>
           <select class="form-select" id="inputInputLevel" name="input_level" aria-label="Input Level" >
             <option value="High">High</option>
             <!-- Add more options as needed -->
@@ -103,7 +174,7 @@
       </div>
       <div class="row mt-3">
         <div class="col text-center">
-          <label for="plotTypeSelect" class="form-label">Plot Type</label>
+          <label for="plotTypeSelect" class="form-label"><strong>Plot Type</strong></label>
           <select class="form-select" id="plotTypeSelect" name="plot_type" aria-label="Plot Type">
             <option value="cropland">Cropland</option>
             <option value="marginal">Marginal Land</option>
@@ -133,4 +204,3 @@
 </body>
 </html>
 
-</html>
