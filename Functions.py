@@ -1499,11 +1499,14 @@ with rasterio.open(potential_yield.iloc[2,14].strip()) as src:
 # In[27]:
 
 
+
+import plotly.graph_objects as go
+
 def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_level):
     time_periods = ['2011-2040', '2041-2070', '2071-2100']
     RCPs = ['RCP2.6', 'RCP4.5', 'RCP6.0', 'RCP8.5']
     
-    fig, axs = plt.subplots(1, 3, figsize=(16, 4))  # Create subplots in a single row
+    fig = go.Figure()  # Create a new Plotly figure
     
     initial_potential_1 = get_actual_data_biomass_potential_all(shapefile , 2000 , 'Total')
     initial_potential_2 = get_actual_data_biomass_potential_all(shapefile , 2010 , 'Total')
@@ -1519,13 +1522,16 @@ def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_
             biomass_potentials.append(potential_value)
             
         x_values = ['2000', '2010'] + RCPs
-        axs[i].bar(x_values, biomass_potentials, color='blue')
-        axs[i].set_xlabel('Years')
-        axs[i].set_ylabel('Biomass Potential from Cropland Land')
-        axs[i].set_title(f'Biomass Potential from different RCPs in {time_period}')
-        
-    plt.tight_layout()  # Adjust spacing between subplots
-    plt.show()
+        fig.add_trace(go.Bar(x=x_values, y=biomass_potentials, name=f'{time_period}'))  # Add a bar trace to the figure
+
+    fig.update_layout(
+        barmode='group',
+        xaxis=dict(title='Years'),
+        yaxis=dict(title='Biomass Potential from Cropland Land'),
+        title=dict(text='Biomass Potential from different RCPs'),
+    )
+
+    fig.show()  # Display the interactive Plotly figure
 
 
 # In[ ]:
