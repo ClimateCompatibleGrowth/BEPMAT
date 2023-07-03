@@ -1,6 +1,6 @@
 # BioMass
 
-Welcome to the BioMass repository! This project aims to provide researchers with a tool to get biomass potential in any region across the world.
+Welcome to the Biomass Mapping Tool repository! This project aims to provide researchers with a tool to get biomass potential in any region across the world.
 
 ## Table of Contents
 
