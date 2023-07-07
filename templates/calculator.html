@@ -9,11 +9,7 @@
     .form-container {
       margin-top: 20px;
     }
-  </style>
-  <style>
-    .form-container {
-      margin-top: 20px;
-    }
+  
     .graph-container {
       border: 1px solid #ddd;
       padding: 10px;
@@ -22,15 +18,17 @@
       overflow-y: auto; /* Enable vertical scrolling if content exceeds the container height */
       max-width: 1120px;
     }
+  
     .graph-item {
       margin-bottom: 20px;
     }
+  
     .output-box {
       border: 1px solid #ddd;
       padding: 10px;
       margin-top: 20px;
     }
-
+  
     .custom-box {
       text-align: center;
       margin-top: 10px;
@@ -38,44 +36,50 @@
       padding: 20px;
       background-color: #ffffff;
     }
+  
     /* Set the width of the carousel controls */
     .carousel-control-prev,
     .carousel-control-next {
       width: 50px; /* Replace with your desired width */
     }
-    
+  
     /* Set the height of the carousel images */
     #carouselExampleAutoplaying img {
       height: 400px; /* Replace with your desired height */
     }
-
-
-  .selected-crops-heading {
-    font-family: Arial, sans-serif;
-    font-size: 35px;
-    color: #000000; /* Bluish color */
-    text-align: center;
-    margin-top: 32px;
-    text-decoration: none;
-  }
-
-  .selected-crops-heading a {
-    text-decoration: none; /* Remove the underline from the link */
-    color: #000000;
-  }
-
-  .selected-crops-paragraph {
-    font-family: Arial, sans-serif;
-    font-size: 16px;
-    color: #000000; /* Bluish color */
-    font-weight: bold;
-    text-align: center;
-    margin-top: 20px;
-    margin-bottom: 40px;
-    margin-left: 70px;
-    margin-right: 70px;
-  }
-</style>
+  
+    .selected-crops-heading {
+      font-family: Arial, sans-serif;
+      font-size: 35px;
+      color: #000000; /* Bluish color */
+      text-align: center;
+      margin-top: 32px;
+      text-decoration: none;
+    }
+  
+    .selected-crops-heading a {
+      text-decoration: none; /* Remove the underline from the link */
+      color: #000000;
+    }
+  
+    .selected-crops-paragraph {
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+      color: #000000; /* Bluish color */
+      font-weight: bold;
+      text-align: center;
+      margin-top: 20px;
+      margin-bottom: 40px;
+      margin-left: 70px;
+      margin-right: 70px;
+    }
+  
+    /* Additional styles for dropdown alignment */
+    .form-container .col {
+      margin-bottom: 20px;
+    }
+  </style>
+  
 
 
 </head>
@@ -171,11 +175,17 @@
       <div class="row">
         <div class="col">
           <label for="inputCountry" class="form-label"><strong>Country</strong></label>
-          <input type="text" id="inputCountry" name="country" class="form-control" aria-label="Country" placeholder="Enter country name">
+          <select class="form-select" id="inputCountry" name="country" aria-label="Country">
+            {% for country in countries %}
+            <option value="{{ country }}">{{ country }}</option>
+            {% endfor %}
+          </select>
         </div>
         <div class="col">
           <label for="inputProvince" class="form-label"><strong>Province</strong></label>
-          <input type="text" id="inputProvince" name="province" class="form-control" aria-label="Province" placeholder="Enter province name">
+          <select class="form-select" id="inputProvince" name="province" aria-label="Province">
+            <!-- The province options will be dynamically populated based on the selected country -->
+          </select>
         </div>
         <div class="col">
           <label for="inputWaterSupply" class="form-label"><strong>Water Supply Future</strong></label>
@@ -205,7 +215,7 @@
         </div>
       </div>
       <div class="row mt-3">
-        <div class="col text-center">
+        <div class="col">
           <label for="plotTypeSelect" class="form-label"><strong>Plot Type</strong></label>
           <select class="form-select" id="plotTypeSelect" name="plot_type" aria-label="Plot Type">
             <option value="cropland">Cropland</option>
@@ -238,6 +248,36 @@
       crop in the selected regions. We will be adding more soon!
     </p>
   
+
+    <script>
+      var provincesData = {
+        {% for country, country_provinces in provinces.items() %}
+        "{{ country }}": {{ country_provinces | tojson| safe }},
+        {% endfor %}
+      };
+    
+      var countryDropdown = document.getElementById("inputCountry");
+      var provinceDropdown = document.getElementById("inputProvince");
+    
+      function updateProvinces() {
+        var selectedCountry = countryDropdown.value;
+        var countryProvinces = provincesData[selectedCountry];
+    
+        provinceDropdown.innerHTML = ""; // Clear current options
+    
+        for (var i = 0; i < countryProvinces.length; i++) {
+          var province = countryProvinces[i];
+          var option = document.createElement("option");
+          option.value = province;
+          option.text = province;
+          provinceDropdown.appendChild(option);
+        }
+      }
+    
+      countryDropdown.addEventListener("change", updateProvinces);
+      updateProvinces(); // Call initially to populate provinces based on default selected country
+    </script>
+    
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </body>

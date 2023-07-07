@@ -1500,7 +1500,7 @@ with rasterio.open(potential_yield.iloc[2,14].strip()) as src:
 
 
 def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_level):
-    time_periods = ['2011-2040', '2041-2070', '2071-2100']
+    time_periods = ['2011-2040','2041-2070','2071-2100']
     RCPs = ['RCP2.6', 'RCP4.5', 'RCP6.0', 'RCP8.5']
     
     fig, axs = plt.subplots(1, 3, figsize=(16, 4))  # Create subplots in a single row
