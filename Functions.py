@@ -1492,33 +1492,42 @@ with rasterio.open(potential_yield.iloc[2,14].strip()) as src:
 
 # In[27]:
 
+import plotly.graph_objects as go
+import plotly.io as pio
 
 def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_level):
     time_periods = ['2011-2040','2041-2070','2071-2100']
-    RCPs = ['RCP2.6', 'RCP4.5', 'RCP6.0', 'RCP8.5']
+    RCPs = ['RCP2.6','RCP4.5','RCP6.0','RCP8.5']
     
-    fig, axs = plt.subplots(1, 3, figsize=(16, 4))  # Create subplots in a single row
+    fig = go.Figure()
     
-    initial_potential_1 = get_actual_data_biomass_potential_all(shapefile , 2000 , 'Total')
-    initial_potential_2 = get_actual_data_biomass_potential_all(shapefile , 2010 , 'Total')
+    initial_potential_1 = get_actual_data_biomass_potential_all(shapefile, 2000, 'Total')
+    initial_potential_2 = get_actual_data_biomass_potential_all(shapefile, 2010, 'Total')
 
     for i, time_period in enumerate(time_periods):
         biomass_potentials = []  # Initialize biomass_potentials for each RCP
         biomass_potentials.append(initial_potential_1)
-        biomass_potentials.append(initial_potential_2) # Add initial potentials as a sublist
-        
+        biomass_potentials.append(initial_potential_2)  # Add initial potentials as a sublist
+
         for RCP in RCPs:
-            potential_value = future_residues_all(time_period, climate_model, RCP, water_supply_future, input_level,
-                                                  shapefile, 'Total')
+            potential_value = future_residues_all(time_period, climate_model, RCP, water_supply_future, input_level, shapefile, 'Total')
             biomass_potentials.append(potential_value)
-            
+
         x_values = ['2000', '2010'] + RCPs
-        axs[i].bar(x_values, biomass_potentials, color='blue')
-        axs[i].set_xlabel('Years')
-        axs[i].set_ylabel('Biomass Potential from Cropland Land')
-        axs[i].set_title(f'Biomass Potential from different RCPs in {time_period}')
-        
-    plt.tight_layout()  # Adjust spacing between subplots
+        fig.add_trace(go.Bar(x=x_values, y=biomass_potentials, name=time_period))
+
+    fig.update_layout(
+        barmode='group',
+        xaxis_title='Years',
+        yaxis_title='Biomass Potential from Cropland Land',
+        title='Biomass Potential from different RCPs'
+    )
+
+    # Convert the Plotly figure to HTML for embedding in Flask
+    graph_html = pio.to_html(fig, full_html=False)
+
+    return graph_html
+
     
 
 

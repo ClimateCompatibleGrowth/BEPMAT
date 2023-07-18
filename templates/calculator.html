@@ -225,15 +225,15 @@
       </div>
     </div>
     <div class="container graph-container">
-    
-      {% if graph_image %}
+      {% if graph_html %}
       <div class="graph-item">
-        <img src="data:image/png;base64,{{ graph_image }}" alt="Graph">
+        {{ graph_html | safe }}
       </div>
       {% else %}
       <p>No Graphs requested</p>
       {% endif %}
     </div>
+    
     
     <div class="container form-container">
       <div class="row mt-3">
