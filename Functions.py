@@ -1463,15 +1463,9 @@ def graph_plotter_marginal(shapefile, climate_model, water_supply_future, input_
         axs[i].set_title(f'Biomass Potential from different RCPs in {time_period}')
 
     plt.tight_layout()  # Adjust spacing between subplots
-    plt.show()
-    
-    with rasterio.open(potential_yield.iloc[2,14].strip()) as src:
-        standard_transform = src.transform 
-        standard_crs= src.crs
     
     
     
-    return array_for_max_potentials,array_for_max_crops,array_for_max_yield_crop
 
 
 # In[26]:
@@ -1525,7 +1519,7 @@ def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_
         axs[i].set_title(f'Biomass Potential from different RCPs in {time_period}')
         
     plt.tight_layout()  # Adjust spacing between subplots
-    plt.show()
+    
 
 
 # In[ ]:
