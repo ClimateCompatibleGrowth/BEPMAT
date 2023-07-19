@@ -1431,39 +1431,36 @@ def shapefile_generator(country, province=None):
 # In[25]:
 
 
-import numpy as np
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+import plotly.io as pio
 
 def graph_plotter_marginal(shapefile, climate_model, water_supply_future, input_level):
     time_periods = ['2011-2040', '2041-2070', '2071-2100']
     RCPs = ['RCP2.6', 'RCP4.5', 'RCP6.0', 'RCP8.5']
-    
-    fig, axs = plt.subplots(1, 3, figsize=(16, 4))  # Create subplots in a single row
-    
-    array_for_max_potentials =[]
-    
-    array_for_max_crops = []
-    
-    array_for_max_yield_crop = []
 
-    for i, time_period in enumerate(time_periods):
-        biomass_potentials = np.array([])  # Initialize biomass_potentials for each RCP
-        
-        for RCP in RCPs:
-            potential_value, max_potential_array, max_crop, _ , max_yield_crop = get_biomass_potential_for_marginal(shapefile, time_period, climate_model, RCP, water_supply_future, input_level)
-            biomass_potentials = np.append(biomass_potentials, potential_value)
-            
-            array_for_max_potentials.append(max_potential_array)
-            array_for_max_crops.append(max_crop)
-            array_for_max_yield_crop.append(max_yield_crop)
+    fig = go.Figure()
 
-        axs[i].bar(RCPs, biomass_potentials, color='blue')
-        axs[i].set_xlabel('RCPs')
-        axs[i].set_ylabel('Biomass Potential from Marginal Land')
-        axs[i].set_title(f'Biomass Potential from different RCPs in {time_period}')
+    for i, RCP in enumerate(RCPs):
+        biomass_potentials = []  # Initialize biomass_potentials for each time period
 
-    plt.tight_layout()  # Adjust spacing between subplots
-    
+        for time_period in time_periods:
+            potential_value, _, _, _, _ = get_biomass_potential_for_marginal(shapefile, time_period, climate_model, RCP, water_supply_future, input_level)
+            biomass_potentials.append(potential_value)
+
+        fig.add_trace(go.Bar(x=time_periods, y=biomass_potentials, name=RCP))
+
+    fig.update_layout(
+        barmode='group',
+        xaxis_title='Time Periods',
+        yaxis_title='Biomass Potential from Marginal Land',
+        title='Biomass Potential from different RCPs in Time Periods'
+    )
+
+    # Convert the Plotly figure to HTML for embedding in Flask
+    graph_html = pio.to_html(fig, full_html=False)
+
+    return graph_html
+
     
     
 
@@ -1491,30 +1488,38 @@ with rasterio.open(potential_yield.iloc[2,14].strip()) as src:
 # Potential crop RPR errors based on checks: Pasture Legumes.
 
 # In[27]:
-
 import plotly.graph_objects as go
 import plotly.io as pio
 
 def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_level):
-    time_periods = ['2011-2040','2041-2070','2071-2100']
-    RCPs = ['RCP2.6','RCP4.5','RCP6.0','RCP8.5']
-    
+    time_periods = ['2000', '2010', '2011-2040', '2041-2070', '2071-2100']
+    RCPs = ['RCP2.6', 'RCP4.5', 'RCP6.0', 'RCP8.5']
+
+    # Colors from the Google logo: Blue, Red, Yellow, Blue-Green
+    colors = ['#4285F4', '#DB4437', '#F4B400', '#0F9D58']
+
     fig = go.Figure()
-    
+
     initial_potential_1 = get_actual_data_biomass_potential_all(shapefile, 2000, 'Total')
     initial_potential_2 = get_actual_data_biomass_potential_all(shapefile, 2010, 'Total')
 
-    for i, time_period in enumerate(time_periods):
-        biomass_potentials = []  # Initialize biomass_potentials for each RCP
-        biomass_potentials.append(initial_potential_1)
-        biomass_potentials.append(initial_potential_2)  # Add initial potentials as a sublist
+    # Add traces for 2000 and 2010 with different colors
+    fig.add_trace(go.Bar(x=['2000'], y=[initial_potential_1], name='2000', marker_color='#000000'))
+    fig.add_trace(go.Bar(x=['2010'], y=[initial_potential_2], name='2010', marker_color='#808080'))
 
-        for RCP in RCPs:
+    x_values = ['2000', '2010']  # Initialize x-axis values
+
+    for i, RCP in enumerate(RCPs):
+        biomass_potentials = []  # Initialize biomass_potentials for each time period
+
+        for j, time_period in enumerate(time_periods[2:]):
             potential_value = future_residues_all(time_period, climate_model, RCP, water_supply_future, input_level, shapefile, 'Total')
             biomass_potentials.append(potential_value)
 
-        x_values = ['2000', '2010'] + RCPs
-        fig.add_trace(go.Bar(x=x_values, y=biomass_potentials, name=time_period))
+        # Assign the corresponding color from the Google logo to each time period
+        color = colors[i % len(colors)]
+
+        fig.add_trace(go.Bar(x=time_periods[2:], y=biomass_potentials, name=RCP, marker_color=color))
 
     fig.update_layout(
         barmode='group',
@@ -1527,6 +1532,11 @@ def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_
     graph_html = pio.to_html(fig, full_html=False)
 
     return graph_html
+
+
+
+
+
 
     
 

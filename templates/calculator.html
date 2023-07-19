@@ -78,6 +78,13 @@
     .form-container .col {
       margin-bottom: 20px;
     }
+
+    .navbar-nav .nav-link {
+      font-size: 20px;
+    }
+    .navbar-brand{
+      font-size: 30px;
+    }
   </style>
   
 
@@ -113,20 +120,33 @@
               <a class="nav-link text-light" href="#">About Us</a>
             </li>
           </ul>
-          <img src="..\static/logo.png" alt="Logo" class="navbar-brand" style="height: 50px; width: 100px">
+          <img src="..\static/iitd.png" alt="Logo" class="navbar-brand" style="height: 100px; width: 100px">
+          <img src="..\static/logo.png" alt="Logo" class="navbar-brand" style="height: 80px; width: 150px">
         </div>
       </div>
     </nav>
   
     <div class="container">
       <div class="custom-box">
-        <h3 class="mb-4">Welcome to the Biomass Mapping tool</h3>
-        <p>Thank you for giving our tool a try! Our tool provides various different Biomass Potential calculation options and more
-          are being added soon. Please fill out the form below to get started. Stay tuned for more updates and features!
-        </p>
+        <h3 class="mb-4">Biomass Potential Mapping tool</h3>
+        <p><strong>Our tool allows the user to obtain the raw residual biomass potential for any region selected by the user. Currently, we provide choices for regions
+          till GADM boundary level 1. The users can select any region of their choice and then select the preferred Climate Model, Water Supply Conditions in the Future,
+          and the input level. Most of the data that is used in this project has been obtained from GAEZv4 developed by FAO & IIASA.</strong></p>
+          
+        <p><strong>Another option that we provide our users is the option to select between cropland and marginal land. This is what we mean by each of them - </strong></p>
+        <ul>
+          <li><strong>Cropland: This is the region that is being used to mainly produce the food to ensure food security. We are making 
+          an assumption that the cropland area remains same as that if 2010 throughout the century. But the yield values will change throughout the time and therefore the 
+        residue that we will obtain from the crops will change.</strong></li>
+          <li><strong>Marginal land: The other major part of our project provides the production values for the remaining land excluding 
+          forests, glaciers, desserts etc. where the crops can be grown in the future. Here we provide you with the raw residue biomass potential from
+          by using the production values of the crop which will have the maximum yield for each pixel within the selected region.</strong> </li>
+        </ul>
+        
         
       </div>
     </div>
+    
 
 
     <div class="container">
@@ -165,9 +185,8 @@
     </div>
 
     <h3 id="all-crops-heading" class="selected-crops-heading">All Crops</h3>
-    <p class="selected-crops-paragraph"> The following inputs allow you to get the biomass potential for all 
-      crops in the selected regions. You can choose from Cropland and Marginal Land as of now and we will soon be adding 
-      Total Land as well.
+    <p class="selected-crops-paragraph"> The following inputs allow you to get the raw biomass potential from all 
+      crop residues in the selected region. You can choose from Cropland and Marginal Land as of now.
     </p>
     
     <!-- ...Existing HTML code... -->
@@ -246,8 +265,8 @@
 
 
   <h3 id="single-crop-heading" class="selected-crops-heading">Single Crop</h3>
-    <p class="selected-crops-paragraph"> The following inputs allow you to get the biomass potential for a single  
-      crop in the selected regions. We will be adding more soon!
+    <p class="selected-crops-paragraph"> The following inputs allow you to get the raw biomass potential from single  
+      crop residues in the selected region. 
     </p>
   
 
