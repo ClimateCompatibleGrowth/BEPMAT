@@ -1,6 +1,6 @@
 # BioMass
 
-Welcome to the Biomass Mapping Tool repository! This project aims to provide researchers with a tool to get biomass potential in any region across the world.
+Welcome to the Biomass Mapping Tool repository! This project aims to provide researchers with a tool to get raw biomass potential from crop residues in any region across the world. This will allow them to get more insight on the potential of biomass in the energy sector. Most of the data being used has been taken from the GAEZ v4 by FAO & IIASA.
 
 ## Table of Contents
 
@@ -20,8 +20,7 @@ To install and run this project locally, please follow these steps:
 
 ## Usage
 
-We have not yed added the country names and provinces in the dropdown. Please add the country name manually with first letter capital and same for Province. We advise
-you use the province name as used by GADM if you have access to that data.
+The tool currently only provides region uptil GADM boundary level 1. Incase, the region you select is not working, please contact us and we will look into it.
 
 ## Contributing
 
@@ -39,4 +38,4 @@ We welcome contributions from the community! If you'd like to contribute to this
 
 ---
 
-For more information, please visit our (https://biomass-mapping-tool.onrender.com).
+For more information, please visit our (http://biomassmapping.eastus.cloudapp.azure.com:5000/).
