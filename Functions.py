@@ -3,7 +3,7 @@
 
 # In this notebook I will define all the functions which will be used in the project and in the other notebook I will show the methodology with states of Punjab and Kerala as examples.
 
-# In[4]:
+# In[1]:
 
 
 #Importing a few important libraries essential to the work.
@@ -11,9 +11,14 @@ import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import numpy as np
+#Importing necessary libraries
+import rasterio
+from rasterio.mask import mask
+from rasterio.plot import show
+from rasterio.crs import CRS
 
 
-# In[5]:
+# In[2]:
 
 
 #Now I will upload all the csv files I will be using into dataframes
@@ -24,6 +29,7 @@ production_values= pd.read_csv("./dataset/productionvalues_actualyield.csv")
 exclusion_areas= pd.read_csv("./dataset/Exclusionareas.csv")
 tree_cover_share= pd.read_csv("./dataset/Treecover_share_GAEZ.csv")
 aez_classification = pd.read_csv("./dataset/Classificationzones57.csv")
+
 
 # The production_values defined here will be sued for calculating crop residue from the year 2000 and 2010 under different
 # conditions. The harvested area will be used for future residue from cropland calculations and the potential yield will be
@@ -198,7 +204,7 @@ aez_classification = pd.read_csv("./dataset/Classificationzones57.csv")
 # |
 # 
 
-# In[6]:
+# In[3]:
 
 
 #Now importing the table in pandas format so that we can use it for geospatial analysis
@@ -257,94 +263,193 @@ columns = ['Crop', 'Residue Type', 'RPR', 'SAF', 'LHV (MJ/kg)']
 residue_values = pd.DataFrame(data, columns=columns)
 
 
-# In[7]:
+# In[4]:
 
 
-# Now that we have all the required data, I will create two functions which takes in the relevant input in terms of time
-# period and irrigation. One of the function will loop through all the crops and the other will simply provide crop as an 
-# input option so that we can also view for a particular crop.
-
-#Importing necessary libraries
+import xarray as xr
 import rasterio
+import numpy as np
 from rasterio.mask import mask
-from rasterio.plot import show
-from rasterio.crs import CRS
 
-def get_actual_data_biomass_potential_crop(shapefile, time_period, water_supply, crop):
-    
-    final_potential =0 
-    
-    #Filtering out the dataframe based on the input 
-    filtered_production_values= production_values[(production_values['Time Period']== time_period)&
-                                                 (production_values['Crop']== crop) &
-                                                 (production_values['Water Supply']== water_supply)]
-    required_production_values = filtered_production_values['Download URL']
-    #Getting the url based on the filtered input
-    required_url = required_production_values.values[0].strip()
-    #Opening the raster
-    with rasterio.open(required_url) as src:
-        crs_crop= src.crs #Storing the raster crs for potential use
-        
-        #Clipping the raster based on the shapefile provided
-        clipped_shapefile, clipped_transform = mask(src, shapefile.geometry, crop=True)
-        #Adding up the values within the shapefile
-        sum_value_shapefile = np.nansum(clipped_shapefile)
-        
-        # Retrieving residues for the specific crop from residue_values DataFrame
-        residue_rows = residue_values.loc[residue_values['Crop'] == crop]
+def biomass_potential_past(shapefile, time_period, water_supply):
 
-        # Running a loop over rows containing the same crop but different residues.
-        for _, residue_row in residue_rows.iterrows():
-            LHV = residue_row['LHV (MJ/kg)']
-            SAF = residue_row['SAF']
-            RPR = residue_row['RPR']
+    print ("Called biomass_potential_past function")
 
-            # Multiplying the sum of pixel values with LHV, SAF, and RPR values for the respective crop
-            result_shapefile = sum_value_shapefile * LHV * SAF * RPR
-            
-             # Accumulating and storing the results
-            final_potential += result_shapefile
-    # The last thing to do is unit conversion
-    # The Energy Output was in MJ/Kg. The yield values were in 1000 tonnes which is 10^6 kg. The MJ when converted to Joule 
-    # is also a factor a 10^6. So to get the value in Joule we will multiply by 10^12.
-    
-    print (f" The biomass potential for the {crop} in the selected region is {final_potential*(10**12)} Joules")
-    return final_potential*(10**12)
+    unique_crops_actual = production_values['Crop'].unique()
 
-
-# In[8]:
-
-
-unique_crops_actual = production_values['Crop'].unique()
-
-def get_actual_data_biomass_potential_all(shapefile, time_period, water_supply):
-    final_potential = 0
-    
     filtered_production_values = production_values[(production_values['Time Period'] == time_period) &
-                                                   (production_values['Water Supply'] == water_supply)]
-    required_production_values = filtered_production_values[['Crop','Download URL']]
-    
+                                               (production_values['Water Supply'] == water_supply)]
+    required_production_values = filtered_production_values[['Crop', 'Download URL']]
+
+    # For defining size of the xarray
+    with rasterio.open(potential_yield.iloc[2, 14].strip()) as src:
+        clipped_shapefile_test, _ = mask(src, shapefile.geometry, crop=True)
+
+    # Remove the band dimension if it exists (since it's not needed)
+    if clipped_shapefile_test.ndim == 3:
+        clipped_shapefile_test = clipped_shapefile_test[0]
+
+    # Create xarray Dataset to store individual biomass potentials for each crop
+    individual_biomass_potentials = {}
+
+    # Variable to hold the net sum of all crops and their residues
+    net_sum = 0.0
+
+    # Initialize 'net_biomass_potential_array' before the loop
+    net_biomass_potential_array = xr.DataArray(data=np.zeros_like(clipped_shapefile_test,  dtype='float32'),
+                                               dims=('y', 'x'),
+                                               coords={'y': range(clipped_shapefile_test.shape[0]),
+                                                       'x': range(clipped_shapefile_test.shape[1])},
+                                               attrs={'units': 'Joules',
+                                                      'sum_production': 0.0})  # Add initial sum as an attribute
+
     for crop in unique_crops_actual:
-        required_url = required_production_values[required_production_values['Crop']==crop]['Download URL'].values[0].strip()
-        
+        required_url = required_production_values[required_production_values['Crop'] == crop]['Download URL'].values[0].strip()
+
         with rasterio.open(required_url) as src:
             crs_crop = src.crs
             clipped_shapefile, clipped_transform = mask(src, shapefile.geometry, crop=True)
             sum_value_shapefile = np.nansum(clipped_shapefile)
-            
+
+        # Get the residues for the current crop
         residue_rows = residue_values.loc[residue_values['Crop'] == crop]
-            
+
+        # Calculate the sum of residues for the current crop
+        crop_residue_sum = 0.0
+        crop_residue_shapefile= np.zeros_like(clipped_shapefile)
+        
         for _, residue_row in residue_rows.iterrows():
             LHV = residue_row['LHV (MJ/kg)']
             SAF = residue_row['SAF']
             RPR = residue_row['RPR']
+            crop_residue_sum += sum_value_shapefile * LHV * SAF * RPR * (10**12) #Unit conversion for MJ to J and 
+        # 1000 tonnes to kilograms
+            crop_residue_shapefile += clipped_shapefile * LHV * SAF * RPR * (10**12)
+
+    # Calculate the net sum for all crops and their residues
+        net_sum += crop_residue_sum
+
+    # Remove the band dimension if it exists (since it's not needed)
+        if clipped_shapefile.ndim == 3:
+            clipped_shapefile = clipped_shapefile[0]
+        
+        if crop_residue_shapefile.ndim == 3:
+            crop_residue_shapefile = crop_residue_shapefile[0]
+
+    # Create xarray DataArray to store individual biomass potential for the current crop
+        crop_biomass_potential_array = xr.DataArray(data=crop_residue_shapefile,
+                                                    dims=('y', 'x'),
+                                                    coords={'y': range(clipped_shapefile.shape[0]),
+                                                            'x': range(clipped_shapefile.shape[1])},
+                                                    attrs={'units': 'Joules',
+                                                           'sum_production': crop_residue_sum})  # Add sum as an attribute
+
+        # Sum the individual biomass potential with the net biomass potential
+        net_biomass_potential_array += crop_biomass_potential_array
+
+        # Store the individual biomass potential for the current crop in the dictionary
+        individual_biomass_potentials[crop] = crop_biomass_potential_array
+
+    # Create xarray Dataset to hold all the individual biomass potentials for each crop
+    biomass_potentials_dataset = xr.Dataset(individual_biomass_potentials)
+
+    # Add the net sum of all crops and their residues as an attribute to the Dataset
+    biomass_potentials_dataset.attrs['net_sum'] = net_sum
+
+    # Add the net_biomass_potential_array as a new variable named 'combined' to the biomass_potentials_dataset
+    biomass_potentials_dataset['combined'] = net_biomass_potential_array
     
-            result_shapefile = sum_value_shapefile * LHV * SAF * RPR
-            final_potential += result_shapefile
+    net_sum_combined = net_biomass_potential_array.sum().item()
+    biomass_potentials_dataset['combined'].attrs['sum_production'] = net_sum_combined
+
+    return biomass_potentials_dataset
+
+
+# In[6]:
+
+
+def get_actual_data_biomass_potential_all(shapefile, time_period, water_supply):
     
-    final_potential_joules = final_potential * (10 ** 12)
-    print(f"The biomass potential for all the crops in the selected region is {final_potential_joules} Joules")
-    return final_potential_joules
+    value = biomass_potential_past(shapefile, time_period, water_supply)
+    
+    answer = value.attrs['net_sum']
+    
+    return answer
+
+def get_actual_data_biomass_potential_crop(shapefile, time_period, water_supply, crop):
+    
+    value = biomass_potential_past(shapefile, time_period, water_supply)
+    
+    answer = value[crop].attrs['sum_production']
+    
+    return answer
+
+
+# In[7]:
+
+
+import rasterio
+import numpy as np
+import geopandas as gpd
+from bokeh.plotting import figure, show
+from bokeh.models import LinearColorMapper, ColorBar, HoverTool, GeoJSONDataSource
+import bokeh.palettes as bp
+import bokeh.plotting as bpl
+from rasterio.transform import Affine
+
+# Assuming the rest of your code remains the same
+def bokeh_plot(shapefile, array ):
+    
+    with rasterio.open(potential_yield.iloc[2,14].strip()) as src:
+            standard_transform = src.transform 
+            standard_crs= src.crs
+    # Convert the GeoDataFrame to GeoJSONDataSource
+    
+    test = array_to_inmemory_raster_for_clipped(array, standard_transform,standard_crs,shapefile)
+    
+    geojson = gpd.GeoSeries(shapefile.geometry).to_json()
+    geojson_data = GeoJSONDataSource(geojson=geojson)
+
+    # Read the raster data using rasterio.open
+    raster_path = test
+    src = rasterio.open(raster_path)
+
+    # Read the raster data into a NumPy array
+    data = src.read(1)
+
+    # Flip the raster data along the y-axis to align with Bokeh's coordinate system
+    data = np.flipud(data)
+
+    # Calculate the minimum and maximum x and y coordinates
+    min_x, min_y, max_x, max_y = src.bounds
+
+    # Calculate the minimum and maximum values for the color mapper using the 'combined' array
+    combined_min = array.min().item()
+    combined_max = array.max().item()
+
+    # Create a new color mapper for the raster data
+    mapper = LinearColorMapper(palette=bp.viridis(256), low=combined_min, high=combined_max)
+
+
+    # Create a Bokeh figure
+    p = figure(width=600, height=600, x_axis_label='Longitude', y_axis_label='Latitude', title='Interactive Raster')
+
+    # Add the raster image to the figure using the 'image' glyph
+    p.image(image=[data], x=min_x, y=min_y, dw=(max_x - min_x), dh= (max_y - min_y), color_mapper=mapper)
+
+    # Add color bar to the plot
+    color_bar = ColorBar(color_mapper=mapper, location=(0, 0))
+    p.add_layout(color_bar, 'right')
+
+# Add the boundary of Spain to the plot as a polygon
+    p.patches('xs', 'ys', source=geojson_data, line_color='black', fill_alpha=0)
+
+    # Add hover tool to display the pixel value when hovering over the raster
+    hover = HoverTool(tooltips=[('Value', '@image')], mode='mouse')
+    p.add_tools(hover)
+
+    # Show the plot
+    bpl.show(p)
 
 
 # So above I have created two functions as per our requirment and this finishes the biomass potential from agricultural
@@ -356,29 +461,21 @@ def get_actual_data_biomass_potential_all(shapefile, time_period, water_supply):
 # 
 # I would also like to mention this does not include the marginal land and calculations for that will be done separately after removing the cropland as well. Also as of now the function only includes the crops whose future potential yield data exists.
 
-# In[9]:
+# In[8]:
 
 
-#Function doing as described above
-import pandas as pd
+import xarray as xr
 import rasterio
+import numpy as np
 from rasterio.mask import mask
-import numpy
 
-#Finding out the common crops for which I can find the future yields.
+# Function finding out the common crops for which I can find the future yields.
 
-merged_df = pd.merge(harvested_area, potential_yield, on='Crop', how='inner')
-unique_crops = merged_df['Crop'].unique()
 
-def future_residues_all(time_period, climate_model, rcp, water_supply_future, input_level, shapefile_path, water_supply_2010):
+def future_residues_all_final(time_period, climate_model, rcp, water_supply_future, input_level, shapefile_path, water_supply_2010):
     
-    print("time_period:", time_period)
-    print("climate_model:", climate_model)
-    print("RCP:", rcp)
-    print("water_supply_future:", water_supply_future)
-    print("input_level:", input_level)
-    
-    # Rest of the code...
+    merged_df = pd.merge(harvested_area, potential_yield, on='Crop', how='inner')
+    unique_crops = merged_df['Crop'].unique()
     
     filtered_harvested_area = harvested_area[(harvested_area['Time Period'] == 2010) &
                                              (harvested_area['Water Supply'] == water_supply_2010)]
@@ -390,8 +487,30 @@ def future_residues_all(time_period, climate_model, rcp, water_supply_future, in
                                                (potential_yield['Water Supply'] == water_supply_future) &
                                                (potential_yield['Input Level'] == input_level)]
     required_potential_yields = filtered_potential_yield[['Crop', 'Download URL']]
+    
+    # For defining size of the xarray
+    with rasterio.open(potential_yield.iloc[2, 14].strip()) as src:
+        clipped_shapefile_test, _ = mask(src, shapefile_path.geometry, crop=True)
+        
+    
+# Remove the band dimension if it exists (since it's not needed)
+    if clipped_shapefile_test.ndim == 3:
+        clipped_shapefile_test = clipped_shapefile_test[0]
 
-    net_sum = 0  # Variable to store the net sum of sum products
+
+    # Create xarray DataArray to store the net biomass potential for each pixel
+    net_biomass_potential_array = xr.DataArray(data=0.0,
+                                               dims=('y', 'x'),
+                                               coords={'y': range(clipped_shapefile_test.shape[0]),
+                                                       'x': range(clipped_shapefile_test.shape[1])},
+                                               attrs={'units': 'Joules'})
+    
+
+    # Create xarray Dataset to store individual biomass potentials for each crop
+    individual_biomass_potentials = {}
+
+    # Variable to store the net sum of sum products
+    net_sum = 0.0
 
     for crop in unique_crops:
         harvested_raster_url = required_harvested_area[required_harvested_area['Crop'] == crop]['Download URL'].values[0].strip()
@@ -402,30 +521,67 @@ def future_residues_all(time_period, climate_model, rcp, water_supply_future, in
 
         with rasterio.open(potential_yield_raster_url.strip()) as src:
             clipped_2, _ = mask(src, shapefile_path.geometry, crop=True)
-        
-        clipped_1 = np.nan_to_num(clipped)
-        clipped_3 = np.nan_to_num(clipped_2)
 
-        product = numpy.multiply(clipped, clipped_2)
-        sum_product = numpy.nansum(product)
+        # Remove the 'bands' dimension if it exists (since it's not needed)
+        clipped_1 = np.nan_to_num(clipped)[0] if clipped.ndim == 3 else np.nan_to_num(clipped)
+        clipped_3 = np.nan_to_num(clipped_2)[0] if clipped_2.ndim == 3 else np.nan_to_num(clipped_2)
+
+        product = np.multiply(clipped_1, clipped_3)
+        sum_product = np.nansum(product)
 
         # Extract RPR, SAF, and LHV values for the crop
         residue_rows = residue_values[residue_values['Crop'] == crop]
         temp_sum = 0
-    
-        for _, residue_row in residue_rows.iterrows():    
+
+        for _, residue_row in residue_rows.iterrows():
             LHV = residue_row['LHV (MJ/kg)']
             SAF = residue_row['SAF']
             RPR = residue_row['RPR']
 
-    # Multiply the sum_product with RPR, SAF, and LHV
-            result = sum_product * RPR * SAF * LHV
+            # Multiply the sum_product with RPR, SAF, and LHV
+            result = sum_product * RPR * SAF * LHV * (10**9) #Unit conversion factor
             temp_sum += result
-    
+
         net_sum += temp_sum
 
+        # Create xarray DataArray to store individual biomass potential for the current crop
+        crop_biomass_potential_array = xr.DataArray(data=clipped_1 * clipped_3 * temp_sum,
+                                                    dims=('y', 'x'),
+                                                    coords={'y': range(clipped_shapefile_test.shape[0]),
+                                                            'x': range(clipped_shapefile_test.shape[1])},
+                                                    attrs={'units': 'Joules',
+                                                           'sum_production': temp_sum})  # Add sum as an attribute
 
-    return (net_sum)*(10**9)
+        # Sum the individual biomass potential with the net biomass potential
+        net_biomass_potential_array += crop_biomass_potential_array
+
+        # Store the individual biomass potential for the current crop in the dictionary
+        individual_biomass_potentials[crop] = crop_biomass_potential_array
+
+    # Create xarray Dataset to hold all the individual biomass potentials for each crop
+    biomass_potentials_dataset = xr.Dataset(individual_biomass_potentials)
+
+    # Add the net sum of all crops and their residues as an attribute to the Dataset
+    biomass_potentials_dataset.attrs['net_sum'] = net_sum
+
+    # Add the net_biomass_potential_array as a new variable named 'combined' to the biomass_potentials_dataset
+    biomass_potentials_dataset['combined'] = net_biomass_potential_array
+
+    return biomass_potentials_dataset
+
+
+# In[9]:
+
+
+#Function doing as described above
+
+def future_residues_all(time_period, climate_model, rcp, water_supply_future, input_level, shapefile_path, water_supply_2010):
+    
+    value = future_residues_all_final(time_period, climate_model, rcp, water_supply_future, input_level, shapefile_path, water_supply_2010)
+    
+    answer = value.attrs['net_sum']
+    
+    return answer
 
 
 # In[10]:
@@ -438,52 +594,12 @@ from rasterio.mask import mask
 import numpy
 
 def future_residues_crop(crop, time_period, climate_model, rcp, water_supply_future, input_level, shapefile_path, water_supply_2010):
-    filtered_harvested_area = harvested_area[(harvested_area['Time Period'] == 2010) &
-                                             (harvested_area['Water Supply'] == water_supply_2010)]
-    required_harvested_area = filtered_harvested_area[['Crop', 'Download URL']]
-
-    filtered_potential_yield = potential_yield[(potential_yield['Time Period'] == time_period) &
-                                               (potential_yield['Climate Model'] == climate_model) &
-                                               (potential_yield['RCP'] == rcp) &
-                                               (potential_yield['Water Supply'] == water_supply_future) &
-                                               (potential_yield['Input Level'] == input_level)]
-    required_potential_yields = filtered_potential_yield[['Crop', 'Download URL']]
-
-    net_sum = 0  # Variable to store the net sum of sum products
-
-    harvested_raster_url = required_harvested_area[required_harvested_area['Crop'] == crop]['Download URL'].values[0].strip()
-    potential_yield_raster_url = required_potential_yields[required_potential_yields['Crop'] == crop]['Download URL'].values[0].strip()
-
-    with rasterio.open(harvested_raster_url) as src:
-        clipped, _ = mask(src, shapefile_path.geometry, crop=True)
-
-    with rasterio.open(potential_yield_raster_url.strip()) as src:
-        clipped_2, _ = mask(src, shapefile_path.geometry, crop=True)
     
-    clipped_1 = np.nan_to_num(clipped)
-    clipped_3 = np.nan_to_num(clipped_2)
-
-    product = numpy.multiply(clipped, clipped_2)
-    sum_product = numpy.nansum(product)
-
-    # Extract RPR, SAF, and LHV values for the crop
-    residue_rows = residue_values[residue_values['Crop'] == crop]
+    value = value = future_residues_all_final(time_period, climate_model, rcp, water_supply_future, input_level, shapefile_path, water_supply_2010)
     
-    temp_sum = 0
+    answer = value[crop].attrs['sum_production']
     
-    for _, residue_row in residue_rows.iterrows():    
-        LHV = residue_row['LHV (MJ/kg)']
-        SAF = residue_row['SAF']
-        RPR = residue_row['RPR']
-
-    # Multiply the sum_product with RPR, SAF, and LHV
-        result = sum_product * RPR * SAF * LHV
-        temp_sum += result
-    
-    net_sum += temp_sum
-
-
-    return (net_sum)*(10**9) # 1000 ha to ha and MJ to Joules
+    return answer
 
 
 # So this completes all cropland residue calculations for us. Next we will move to residue and biomass potential from the marginal land but before we get into this we will have to generate the marginal land. So we need to extract certain pixels from certain rasters which will be masked later to accound for deserts, water, glaciers etc.
@@ -1091,16 +1207,16 @@ def remove_pixels(raster_path, shapefile, geodataframe):
 # In[20]:
 
 
-#The following function is like the end function which will simply the maximum potential at each pixel and give us the value
-#we require.
-
 import numpy as np
+import xarray as xr
 
-def find_max_for_each_pixel_crop_and_values(time_period, climate_model, rcp, water_supply_future, input_level,
+def find_max_for_each_pixel_crop_and_values_corrected(time_period, climate_model, rcp, water_supply_future, input_level,
                             shapefile, geodataframe):
-    # Initialize arrays to store the maximum values and corresponding crop names
+    # Initialize dictionaries to store the data for each crop and their residues
+    crop_data = {}
     max_values = None
     max_crops = None
+    crop_residue_sum_dict = {}  # Dictionary to store crop_residue_sum_array for each crop
     
     filtered_potential_yield = potential_yield[(potential_yield['Time Period'] == time_period) &
                                                (potential_yield['Climate Model'] == climate_model) &
@@ -1111,7 +1227,6 @@ def find_max_for_each_pixel_crop_and_values(time_period, climate_model, rcp, wat
     
     # Iterate over the global rasters
     for crop in potential_yield['Crop'].unique():
-        
         # Find the correct raster path for the rasters you want to access
         raster_path = required_potential_yields[required_potential_yields['Crop'] == crop]['Download URL'].values[0].strip()
         
@@ -1120,81 +1235,57 @@ def find_max_for_each_pixel_crop_and_values(time_period, climate_model, rcp, wat
         
         # Multiply the values with the corresponding RPR, SAF, and LHV
         residue_rows = all_residue_values.loc[all_residue_values['Crop'] == crop]
+        crop_residue_sum_array = np.zeros_like(data)
         for _, residue_row in residue_rows.iterrows():
             LHV = residue_row['LHV (MJ/kg)']
             SAF = residue_row['SAF']
             RPR = residue_row['RPR']
+            data_final = data * LHV * SAF * RPR
+            
+            # Handle NaN values by converting them to zero
+            data_final = np.nan_to_num(data_final, nan=0)
+            
+            crop_residue_sum_array += data_final 
         
-        data_final = data * LHV * SAF * RPR
-
+        # Store the data for the current crop and their residues in dictionaries
+        crop_data[crop] = data * LHV * SAF * RPR
+        crop_residue_sum_dict[crop] = crop_residue_sum_array
+        
         # Check if max_values array is None (first iteration)
         if max_values is None:
-            max_values = data_final
-            max_crops = np.empty_like(data_final).astype(str)
-            max_crops[data_final == None] = None
-            max_crops[data_final != None] = crop
+            max_values = crop_residue_sum_array
+            max_crops = np.empty_like(crop_residue_sum_array).astype(str)
+            max_crops[crop_residue_sum_array == None] = None
+            max_crops[crop_residue_sum_array != None] = crop
         else:
             # Find the maximum value between the current raster and previous maximum values
-            max_mask = data_final > max_values
-            max_values[max_mask] = data_final[max_mask]
+            max_mask = crop_residue_sum_array > max_values
+            max_values[max_mask] = crop_residue_sum_array[max_mask]
             max_crops[max_mask] = crop
-            
-         # Replace instances of "Alfalfa" with "No Crop" in max_crops
-    max_crops[max_crops == "Alfalfa"] = "No Crop"
     
-    return max_values, max_crops
+    # Replace instances of "Alfalfa" with None/NaN in max_crops
+    max_crops[max_crops == "Alfalfa"] = None
 
-
-# In[21]:
-
-
-#Additionally I also just wanted to show the crop with the maximum yield at each point in the graph so that we have an idea 
-#that if the crop is giving maximum production is correct. Basically just as a test to identify potential issues in RPR, SAF
-#or LHV.
-
-def find_max_yield_crop_and_values(time_period, climate_model, rcp, water_supply_future, input_level,
-                            shapefile, geodataframe):
-    # Initialize arrays to store the maximum values and corresponding crop names
-    max_values = None
-    max_crops = None
+    # Convert dictionaries to DataArrays
+    crop_data_das = {crop: xr.DataArray(data, dims=('y', 'x'), attrs={'units': 'Joules', 'sum_production': np.nansum(data)})
+                     for crop, data in crop_data.items()}
     
-    filtered_potential_yield = potential_yield[(potential_yield['Time Period'] == time_period) &
-                                               (potential_yield['Climate Model'] == climate_model) &
-                                               (potential_yield['RCP'] == rcp) &
-                                               (potential_yield['Water Supply'] == water_supply_future) &
-                                               (potential_yield['Input Level'] == input_level)]
-    required_potential_yields = filtered_potential_yield[['Crop', 'Download URL']]
+    # Create xarray Dataset to hold all the individual biomass potentials for each crop
+    biomass_potentials_dataset = xr.Dataset(crop_data_das)
     
-    # Iterate over the global rasters
-    for crop in potential_yield['Crop'].unique():
-        
-        # Find the correct raster path for the rasters you want to access
-        raster_path = required_potential_yields[required_potential_yields['Crop'] == crop]['Download URL'].values[0].strip()
-        
-        # Remove pixels from the raster
-        data = remove_pixels(raster_path, shapefile , geodataframe)
-        
-        data_final = data
-
-        # Check if max_values array is None (first iteration)
-        if max_values is None:
-            max_values = data_final
-            max_crops = np.empty_like(data_final).astype(str)
-            max_crops[data_final == None] = None
-            max_crops[data_final != None] = crop
-        else:
-            # Find the maximum value between the current raster and previous maximum values
-            max_mask = data_final > max_values
-            max_values[max_mask] = data_final[max_mask]
-            max_crops[max_mask] = crop
-            
-         # Replace instances of "Alfalfa" with "No Crop" in max_crops
-    max_crops[max_crops == "Alfalfa"] = "No Crop"
+    # Add the crop_residue_sum_array as an attribute for each crop
+    for crop, crop_residue_sum_array in crop_residue_sum_dict.items():
+        biomass_potentials_dataset[crop].attrs['crop_residue_sum_array'] = xr.DataArray(crop_residue_sum_array, dims=('y', 'x'), attrs={'units': 'Joules'})
     
-    return max_values, max_crops
+    # Add the crop with the maximum value as attributes to the Dataset
+    biomass_potentials_dataset.attrs['max_values'] = max_values
+    biomass_potentials_dataset.attrs['max_crops'] = max_crops
+    
+    return biomass_potentials_dataset
 
 
-# In[22]:
+
+# In[24]:
 
 
 # Now the only code we require is to store the harvested_area for each pixel somewhere so that we can basically accomodate
@@ -1240,7 +1331,7 @@ def get_net_harvested_area(shapefile, geodataframe):
 # potential in a particular future year, under a particle RCP and others.
 
 
-# In[23]:
+# In[25]:
 
 
 #So there are two ways of generating the available area.One is using an approximation formula accounting for the change in
@@ -1270,7 +1361,7 @@ def extract_pixel_area(raster_path, shapefile):
     return pixel_area
 
 
-# In[24]:
+# In[26]:
 
 
 def get_biomass_potential_for_marginal(shapefile,time_period, climate_model, rcp, water_supply_future,
@@ -1308,10 +1399,7 @@ def get_biomass_potential_for_marginal(shapefile,time_period, climate_model, rcp
     
     convert_df_to_gdf(coordinates_all)
     
-    max_potential, max_crop_array = find_max_for_each_pixel_crop_and_values(time_period, climate_model, rcp,
-                                                                            water_supply_future, input_level,
-                                                                            shapefile, coordinates_all)
-    max_yield, max_yield_crop = find_max_yield_crop_and_values(time_period, climate_model, rcp,
+    biomass_potential_xarray = find_max_for_each_pixel_crop_and_values_corrected(time_period, climate_model, rcp,
                                                                             water_supply_future, input_level,
                                                                             shapefile, coordinates_all)
     
@@ -1325,14 +1413,27 @@ def get_biomass_potential_for_marginal(shapefile,time_period, climate_model, rcp
         standard_crs = src.crs
     
     remaining_area = np.subtract(net_area,harvested_area_from_shapefile)
-    final_potential = np.multiply(max_potential, net_area)*(10**7)#Unit conversion MJ to Joules and 10 Kg to Kg
+    final_potential = np.multiply(biomass_potential_xarray.attrs['max_values'], net_area)*(10**7)#Unit conversion MJ to Joules and 10 Kg to Kg
     total_biomass_marginal_potential = np.nansum(final_potential)
 
     
-    return total_biomass_marginal_potential, final_potential, max_crop_array , max_yield , max_yield_crop
+    return total_biomass_marginal_potential, final_potential, biomass_potential_xarray
 
 
-# In[61]:
+# In[53]:
+
+
+# import time 
+
+# start = time.time()
+
+# test_1,test_2,test_3 = get_biomass_potential_for_marginal(spain,'2041-2070','IPSL-CM5A-LR','RCP4.5', 'Available water content of 200 mm/m (under irrigation conditions)', 'High')
+
+# end = time.time()
+# print (f'Elapsed Time is : {end-start}')
+
+
+# In[27]:
 
 
 import gadm
@@ -1355,153 +1456,171 @@ def shapefile_generator(country, province=None):
         return gdf_country
 
 
-# In[71]:
+# In[28]:
 
 
-# import time 
-
-# start_time = time.time()
-
-# iceland_potential, iceland_marginal, iceland_crop, iceland_max_yield , iceland_max_yield_crop = get_biomass_potential_for_marginal(iceland ,
-#                                                                             '2041-2070', 'IPSL-CM5A-LR', 'RCP2.6',
-#                                                 'Available water content of 200 mm/m (under irrigation conditions)','High')
-
-# elapsed_time = time.time() - start_time
-# print("Elapsed time:", elapsed_time, "seconds")
+# iceland = shapefile_generator("Iceland")
+# spain = shapefile_generator('Spain')
 
 
-# In[72]:
+# In[29]:
 
 
-# # Trying to create a function that gives us a raster with each crop assigned a different colour so that we can them 
-# # altogether and analyse.
+import numpy as np
+import matplotlib.pyplot as plt
+import rasterio
+from rasterio.plot import show
+from rasterio.transform import Affine
+from rasterio.io import MemoryFile
+import matplotlib.patches as mpatches
 
-# import geopandas as gpd
-# import rasterio
+
+# Assuming you have already obtained the 'max_crops' array
+# and the 'venezuela_crop' array containing crop names for each pixel
+
+def crop_show(crop_array ,shapefile):
+# Define a colormap for different crops
+    cmap = plt.get_cmap('tab20b')
+
+# Create a color index array based on the unique crop names
+    crop_names = np.unique(crop_array)
+    crop_indices = {crop: i for i, crop in enumerate(crop_names)}
+
+# Convert crop names to corresponding color indices
+    color_index = np.vectorize(crop_indices.get)(crop_array)
+
+# Assuming you have loaded the shapefile using rasterio
+# and obtained the 'standard_transform' object
+    with rasterio.open(potential_yield.iloc[2,14].strip()) as src:
+            standard_transform = src.transform 
+            standard_crs= src.crs
+
+# Get the pixel size from the standard_transform
+    pixel_size_x = standard_transform.a
+    pixel_size_y = standard_transform.e
+
+    graph_bounds = shapefile.bounds
+
+    # Get the boundary values from the shapefile
+    xmin = graph_bounds['minx'].min()
+    xmax = graph_bounds['maxx'].max()
+    ymin = graph_bounds['miny'].min()
+    ymax = graph_bounds['maxy'].max()
+    # Calculate the number of rows and columns in the raster
+    rows, cols = color_index.shape
+
+    # Create the transformation matrix for the raster
+    transform = Affine(pixel_size_x, 0, xmin,
+                   0, pixel_size_y, ymax)
+
+# Create a memory file to store the raster
+    with MemoryFile() as memfile:
+        # Create a new raster dataset
+        with memfile.open(driver='GTiff', height=rows, width=cols, count=1,
+                          dtype=color_index.dtype, crs=standard_crs,
+                          transform=transform) as dataset:
+            # Write the color_index array to the raster dataset
+            dataset.write(color_index, 1)
+
+            # Plot the raster with shapefile boundaries
+            show((dataset, 1), ax=plt.gca(), cmap=cmap)
+        
+            # Plot the shapefile boundary
+            shapefile.plot(ax=plt.gca(), facecolor='none', edgecolor='black')
+            
+            # Create a legend for color-to-crop mapping
+            legend_patches = [mpatches.Patch(color=cmap(i), label=crop) for crop, i in crop_indices.items()]
+            plt.legend(handles=legend_patches, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+
+
+
+    # Set the title and show the plot
+        plt.title('Crop Raster with Shapefile Boundaries')
+        plt.show()
+
+
+# In[39]:
+
+
 # import numpy as np
+# import matplotlib.pyplot as plt
 
-# # Load the shapefile of Iceland using geopandas
-# iceland_shapefile = iceland
-
-
-# # Create an empty colored raster with the same extent and resolution as the Iceland shapefile using rasterio
-# colored_raster = rasterio.open(
-#     'colored_raster.tif',
-#     'w',
-#     driver='GTiff',
-#     width=iceland_shapefile.bounds['maxx'] - iceland_shapefile.bounds['minx'],
-#     height=iceland_shapefile.bounds['maxy'] - iceland_shapefile.bounds['miny'],
-#     count=1,  # Single band
-#     dtype=rasterio.uint8,  # Unsigned 8-bit integer
-#     crs=iceland_shapefile.crs,
-#     transform=rasterio.transform.from_bounds(*iceland_shapefile.total_bounds,
-#                                              width=iceland_shapefile.bounds['maxx'] - iceland_shapefile.bounds['minx'],
-#                                              height=iceland_shapefile.bounds['maxy'] - iceland_shapefile.bounds['miny'])
-# )
-
-# # Define a color palette for your crops
-# color_mapping = {
-#     'No Crop': (255, 255, 255),   # White
-#     'Pasture Legumes': (0, 255, 0),   # Green
-#     'White Potato': (0, 0, 255),   # Blue
-#     'Oat':  (255, 0, 0)  # Red
-#     # Add more crops and colors as needed
-# }
-
-# # Create an empty numpy array to store the colored raster
-# colored_array = np.zeros_like(iceland_crop, dtype=np.uint8)
-
-# # Iterate over each pixel in the colored raster and assign the corresponding color
-# for idx, crop_name in np.ndenumerate(iceland_crop):
-#     color = color_mapping.get(crop_name, (0, 0, 0))  # Default to black if crop name not found in the mapping
-#     colored_array[idx] = color
-
-# # Write the colored array to the colored raster
-# colored_raster.write(colored_array, 1)
-
-# # Close the colored raster
-# colored_raster.close()
-
-# # Open the colored raster as a memory file
-# with rasterio.MemoryFile() as memfile:
-#     with memfile.open(**colored_raster.profile) as dataset:
-#         dataset.write(colored_array, 1)
-
-
-# In[25]:
-
-
-import plotly.graph_objects as go
-import plotly.io as pio
-
-def graph_plotter_marginal(shapefile, climate_model, water_supply_future, input_level):
-    time_periods = ['2011-2040', '2041-2070', '2071-2100']
-    RCPs = ['RCP2.6', 'RCP4.5', 'RCP6.0', 'RCP8.5']
-
-    fig = go.Figure()
-
-    for i, RCP in enumerate(RCPs):
-        biomass_potentials = []  # Initialize biomass_potentials for each time period
-
-        for time_period in time_periods:
-            potential_value, _, _, _, _ = get_biomass_potential_for_marginal(shapefile, time_period, climate_model, RCP, water_supply_future, input_level)
-            biomass_potentials.append(potential_value)
-
-        fig.add_trace(go.Bar(x=time_periods, y=biomass_potentials, name=RCP))
-
-    fig.update_layout(
-        barmode='group',
-        xaxis_title='Time Periods',
-        yaxis_title='Biomass Potential from Marginal Land',
-        title='Biomass Potential from different RCPs in Time Periods'
-    )
-
-    # Convert the Plotly figure to HTML for embedding in Flask
-    graph_html = pio.to_html(fig, full_html=False)
-
-    return graph_html
-
+# def graph_plotter_marginal(shapefile, climate_model, water_supply_future, input_level):
+#     time_periods = ['2011-2040', '2041-2070', '2071-2100']
+#     RCPs = ['RCP2.6', 'RCP4.5', 'RCP6.0', 'RCP8.5']
     
+#     fig, axs = plt.subplots(1, 3, figsize=(16, 4))  # Create subplots in a single row
+    
+#     array_for_max_potentials =[]
+    
+#     array_for_max_crops = []
+    
+#     array_for_max_yield_crop = []
+
+#     for i, time_period in enumerate(time_periods):
+#         biomass_potentials = np.array([])  # Initialize biomass_potentials for each RCP
+        
+#         for RCP in RCPs:
+#             potential_value, max_potential_array, max_crop, _ , max_yield_crop = get_biomass_potential_for_marginal(shapefile, time_period, climate_model, RCP, water_supply_future, input_level)
+#             biomass_potentials = np.append(biomass_potentials, potential_value)
+            
+#             array_for_max_potentials.append(max_potential_array)
+#             array_for_max_crops.append(max_crop)
+#             array_for_max_yield_crop.append(max_yield_crop)
+
+#         axs[i].bar(RCPs, biomass_potentials, color='blue')
+#         axs[i].set_xlabel('RCPs')
+#         axs[i].set_ylabel('Biomass Potential from Marginal Land')
+#         axs[i].set_title(f'Biomass Potential from different RCPs in {time_period}')
+
+#     plt.tight_layout()  # Adjust spacing between subplots
+#     plt.show()
+    
+#     with rasterio.open(potential_yield.iloc[2,14].strip()) as src:
+#         standard_transform = src.transform 
+#         standard_crs= src.crs
+    
+    
+    
+#     return array_for_max_potentials,array_for_max_crops,array_for_max_yield_crop
+
+
+# In[31]:
+
+
+# # Comes handy in a lot of situations
+# with rasterio.open(potential_yield.iloc[2,14].strip()) as src:
+#     standard_transform = src.transform 
+#     standard_crs= src.crs
     
 
 
-# In[26]:
+# In[45]:
 
 
-# Comes handy in a lot of situations
-with rasterio.open(potential_yield.iloc[2,14].strip()) as src:
-    standard_transform = src.transform 
-    standard_crs= src.crs
-    
-
-
-# In[64]:
-
-
-# start_time = time.time()
-# array_for_max_potentials, array_for_max_crops , array_for_max_yield_crop = graph_plotter_marginal(iceland ,'IPSL-CM5A-LR',
-#                                         'Available water content of 200 mm/m (under irrigation conditions)','High')
-# elapsed_time = time.time() - start_time
-# print("Elapsed time:", elapsed_time, "seconds")
-
-
-# Potential crop RPR errors based on checks: Pasture Legumes.
-
-# In[27]:
+import plotly
 import plotly.graph_objects as go
 import plotly.io as pio
 
 def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_level):
     time_periods = ['2000', '2010', '2011-2040', '2041-2070', '2071-2100']
     RCPs = ['RCP2.6', 'RCP4.5', 'RCP6.0', 'RCP8.5']
-
+    
+    xarrays = {}  # Dictionary to store the xarray for each RCP and time period
+    
     # Colors from the Google logo: Blue, Red, Yellow, Blue-Green
     colors = ['#4285F4', '#DB4437', '#F4B400', '#0F9D58']
 
     fig = go.Figure()
+    
+    value_1 = biomass_potential_past(shapefile, 2000, 'Total')
+    value_2 = biomass_potential_past(shapefile, 2010, 'Total')
+    
+    xarrays[('2000')] = value_1
+    xarrays[('2010')] = value_2
 
-    initial_potential_1 = get_actual_data_biomass_potential_all(shapefile, 2000, 'Total')
-    initial_potential_2 = get_actual_data_biomass_potential_all(shapefile, 2010, 'Total')
+    initial_potential_1 = value_1.attrs['net_sum']
+    initial_potential_2 = value_2.attrs['net_sum']
 
     # Add traces for 2000 and 2010 with different colors
     fig.add_trace(go.Bar(x=['2000'], y=[initial_potential_1], name='2000', marker_color='#000000'))
@@ -1513,8 +1632,15 @@ def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_
         biomass_potentials = []  # Initialize biomass_potentials for each time period
 
         for j, time_period in enumerate(time_periods[2:]):
-            potential_value = future_residues_all(time_period, climate_model, RCP, water_supply_future, input_level, shapefile, 'Total')
+            
+            value_calculator = future_residues_all_final(time_period, climate_model, RCP, water_supply_future, input_level, shapefile, 'Total')
+            
+            potential_value = value_calculator.attrs['net_sum']
             biomass_potentials.append(potential_value)
+            print ("Running")
+            
+            # Store the xarray in the xarrays dictionary with a tuple key (RCP, time_period)
+            xarrays[(RCP, time_period)] = value_calculator
 
         # Assign the corresponding color from the Google logo to each time period
         color = colors[i % len(colors)]
@@ -1531,19 +1657,96 @@ def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_
     # Convert the Plotly figure to HTML for embedding in Flask
     graph_html = pio.to_html(fig, full_html=False)
 
-    return graph_html
+    return graph_html, xarrays
 
 
+# In[33]:
 
 
+# graph_plotter_cropland(punjab, 'IPSL-CM5A-LR',
+#                          'Available water content of 200 mm/m (under irrigation conditions)','High')
 
 
-    
+# In[34]:
+
+
+# punjab = shapefile_generator('India', 'Punjab')
+
+
+# In[35]:
+
+
+# venezuela = shapefile_generator('Venezuela')
+
+
+# In[38]:
+
+
+import plotly.graph_objects as go
+import plotly.io as pio
+
+def graph_plotter_marginal_new(shapefile, climate_model, water_supply_future, input_level):
+    time_periods = ['2011-2040', '2041-2070', '2071-2100']
+    RCPs = ['RCP2.6', 'RCP4.5', 'RCP6.0', 'RCP8.5']
+
+    fig = go.Figure()
+    xarrays = {}  # Dictionary to store the xarray for each RCP and time period
+    final_potentials = {}  # Dictionary to store the final potential array for each RCP
+
+    for i, RCP in enumerate(RCPs):
+        biomass_potentials = []  # Initialize biomass_potentials for each time period
+
+        for time_period in time_periods:
+            total_biomass_marginal_potential, final_potential, xarray = get_biomass_potential_for_marginal(
+                shapefile, time_period, climate_model, RCP, water_supply_future, input_level
+            )
+            biomass_potentials.append(total_biomass_marginal_potential)
+            xarrays[(RCP, time_period)] = xarray
+            final_potentials[(RCP, time_period)] = final_potential
+
+        fig.add_trace(go.Bar(x=time_periods, y=biomass_potentials, name=RCP))
+
+    fig.update_layout(
+        barmode='group',
+        xaxis_title='Time Periods',
+        yaxis_title='Biomass Potential from Marginal Land',
+        title='Biomass Potential from different RCPs in Time Periods'
+    )
+
+    # Convert the Plotly figure to HTML for embedding in Flask
+    graph_html = pio.to_html(fig, full_html=False)
+
+    return graph_html, xarrays, final_potentials
+
+
+# In[37]:
+
+
+# start = time.time()
+# graph , xarrays_test, final_test = graph_plotter_marginal_new(spain, 'IPSL-CM5A-LR',
+#                        'Available water content of 200 mm/m (under irrigation conditions)','High')
+# end = time.time()
+
+# print (f'Elapsed time is : {end - start}')
+
+
+# In[41]:
+
+
+# graph , xarrays_test = graph_plotter_cropland(spain, 'IPSL-CM5A-LR',
+#                        'Available water content of 200 mm/m (under irrigation conditions)','High')
+
+
+# REMOVE THE NEGATIVES!! HANDLE THE WATER HARVESTING THING!!
+
+# In[52]:
+
+
+# xarrays_test['RCP2.6','2041-2070']
 
 
 # In[ ]:
 
 
-# graph_plotter_cropland(gdf, 'IPSL-CM5A-LR',
-#                         'Available water content of 200 mm/m (under irrigation conditions)','High')
+
 
