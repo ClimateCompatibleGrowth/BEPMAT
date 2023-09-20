@@ -1,15 +1,13 @@
 from flask import Flask, render_template, request, make_response
-from Functions import shapefile_generator, graph_plotter_cropland, graph_plotter_marginal_new
+from Functions import shapefile_generator, graph_plotter_cropland, graph_plotter_marginal_new, bokeh_plot
 import pandas as pd
-import csv
+from flask import send_file
+import io
+import json
+import xarray as xr
 
 
 app = Flask(__name__)
-
-def xarray_to_csv(xarray):
-    # Convert the xarray to a CSV string
-    csv_string = xarray.to_csv(encoding='utf-8')
-    return csv_string
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -36,35 +34,79 @@ def home():
 
         if plot_type == 'cropland':
             graph_html, xarrays = graph_plotter_cropland(gdf, climate_model, water_supply_future, input_level)
+            bokeh_plots = {key: bokeh_plot(gdf, xarrays[key]['combined'].values) for key in xarrays}
+
         elif plot_type == 'marginal':
             graph_html, xarrays, final_potentials = graph_plotter_marginal_new(gdf, climate_model, water_supply_future, input_level)
+            bokeh_plots = {key: bokeh_plot(gdf, final_potentials[key]) for key in xarrays}
+
         else:
             return "Invalid plot type"
+        
+        xarrays_dict = {str(key): value.to_dict() for key, value in xarrays.items()}  # Convert xarrays to a dictionary of dictionaries
 
-        return render_template('calculator.html', graph_html=graph_html, xarrays=xarrays, countries=countries, provinces=provinces)
+
+        return render_template('calculator.html', graph_html=graph_html, xarrays_json=json.dumps(xarrays_dict), countries=countries, provinces=provinces, bokeh_plots=bokeh_plots)
 
     return render_template('calculator.html', countries=countries, provinces=provinces, graph_html=None)
 
-@app.route('/download_csv', methods=['POST'])
-def download_csv():
-    # Retrieve the xarrays from the form data
-    xarray_str = request.form.get('xarrays')
-    # Split the xarrays string into individual xarray CSV strings
-    xarray_csv_list = xarray_str.split(';')
+@app.route('/download_xarray', methods=['POST'])
+def download_xarray():
+    try:
+        # Retrieve the xarray data from the form (you may need to pass this data from the previous route)
+        xarray_data_json = request.form['xarray_data']
+        
+        # Convert the JSON string back to a dictionary
+        xarrays_dict = json.loads(xarray_data_json)
+        
+        for key, data_dict in xarrays_dict.items():
+            print(f"Key: {key}")
+            
+        
+        reconstructed_xarrays = {}
+        for key, data_dict in xarrays_dict.items():
+            key_tuple = eval(key)
+            coords = {}
+            for coord_name, coord_info in data_dict['coords'].items():
+                coords[coord_name] = xr.DataArray(coord_info['data'], dims=coord_info['dims'], attrs=coord_info['attrs'])
+    
+            data_vars = {}
+            for data_var_name, data_var_info in data_dict['data_vars'].items():
+                data_vars[data_var_name] = xr.DataArray(data_var_info['data'], dims=data_var_info['dims'], attrs=data_var_info['attrs'])
+    
+            reconstructed_xarrays[key_tuple] = xr.Dataset(data_vars=data_vars, coords=coords, attrs=data_dict['attrs'])
 
-    # Create a response object with the CSV data
-    response = make_response('\n'.join(xarray_csv_list))
-    # Set the appropriate content type for CSV
-    response.headers['Content-Type'] = 'text/csv'
-    # Set the content disposition as attachment so that it downloads as a file
-    response.headers['Content-Disposition'] = 'attachment; filename=xarrays.csv'
+        
+            print("Reconstructed xarrays:", reconstructed_xarrays)  # Print the reconstructed Xarray data
+    
+        netcdf_file = io.BytesIO()
 
-    return response
+        # List to store the filenames of the saved NetCDF files
+        filenames = []
 
+        # Loop through the reconstructed xarrays and save them to NetCDF files
+        for key, xarray_obj in reconstructed_xarrays.items():
+            # Create a unique filename for each NetCDF file
+            filename = f'biomass_potentials_{key}.nc'
+            filenames.append(filename)
+            
+            # Convert the xarray object to NetCDF format and save it to a file
+            xarray_obj.to_netcdf(filename, format='NETCDF4')
+
+        # Provide links to download each NetCDF file
+        download_links = []
+        for filename in filenames:
+            download_link = f'<a href="{filename}" download>{filename}</a><br>'
+            download_links.append(download_link)
+
+        return "Click the links below to download the NetCDF files:<br>" + "\n".join(download_links)
+    except Exception as e:
+        print("Error:", e)
+        return "An error occurred while processing the download request."
+    
 @app.route('/submit', methods=['POST'])
 def submit():
     return home()
-
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0')
