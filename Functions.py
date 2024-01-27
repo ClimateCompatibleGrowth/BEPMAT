@@ -1632,6 +1632,8 @@ def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_
         yaxis_title='Biomass Potential from Cropland Land',
         title='Biomass Potential from different RCPs'
     )
+    
+    fig.show()
 
     return fig, xarrays
 
@@ -1666,6 +1668,8 @@ def graph_plotter_marginal(shapefile, climate_model, water_supply_future, input_
         yaxis_title='Biomass Potential from Marginal Land',
         title='Biomass Potential from different RCPs in Time Periods'
     )
+    
+    fig.show()
 
     return fig, xarrays, final_potentials
 
@@ -1700,6 +1704,8 @@ def graph_plotter_total(shapefile, climate_model, water_supply_future, input_lev
         yaxis_title='Biomass Potential from Total Land',
         title='Total Biomass Potential from different RCPs in Time Periods'
     )
+    
+    fig.show()
 
     return fig, arrays
 
@@ -1795,6 +1801,11 @@ def graph_plotter_all(shapefile, climate_model, water_supply_future, input_level
         yaxis_title='Biomass Potential from Marginal Land',
         title='Biomass Potential from different RCPs in Time Periods'
     )
+    
+    fig_crop.show()
+    fig_marg.show()
+    fig_total.show()
+
     
     return fig_crop, fig_marg , fig_total , xarrays_marg , xarrays_crop , final_potentials_marg , arrays_total
 
