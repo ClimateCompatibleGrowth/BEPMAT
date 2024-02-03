@@ -1516,24 +1516,24 @@ def bokeh_plot(shapefile, array ):
 # In[26]:
 
 
-def crop_show(crop_array ,shapefile):
-# Define a colormap for different crops
-    cmap = plt.get_cmap('tab20b')
+def crop_show(crop_array, shapefile):
+    # Choose a colormap that suits your data
+    cmap = plt.get_cmap('plasma')
 
-# Create a color index array based on the unique crop names
+    # Create a color index array based on the unique crop names
     crop_names = np.unique(crop_array)
     crop_indices = {crop: i for i, crop in enumerate(crop_names)}
 
-# Convert crop names to corresponding color indices
+    # Convert crop names to corresponding color indices
     color_index = np.vectorize(crop_indices.get)(crop_array)
 
-# Assuming you have loaded the shapefile using rasterio
-# and obtained the 'standard_transform' object
-    with rasterio.open(potential_yield.iloc[2,14].strip()) as src:
-            standard_transform = src.transform 
-            standard_crs= src.crs
+    # Assuming you have loaded the shapefile using rasterio
+    # and obtained the 'standard_transform' object
+    with rasterio.open(potential_yield.iloc[2, 14].strip()) as src:
+        standard_transform = src.transform 
+        standard_crs = src.crs
 
-# Get the pixel size from the standard_transform
+    # Get the pixel size from the standard_transform
     pixel_size_x = standard_transform.a
     pixel_size_y = standard_transform.e
 
@@ -1544,14 +1544,14 @@ def crop_show(crop_array ,shapefile):
     xmax = graph_bounds['maxx'].max()
     ymin = graph_bounds['miny'].min()
     ymax = graph_bounds['maxy'].max()
+
     # Calculate the number of rows and columns in the raster
     rows, cols = color_index.shape
 
     # Create the transformation matrix for the raster
-    transform = Affine(pixel_size_x, 0, xmin,
-                   0, pixel_size_y, ymax)
+    transform = Affine(pixel_size_x, 0, xmin, 0, pixel_size_y, ymax)
 
-# Create a memory file to store the raster
+    # Create a memory file to store the raster
     with MemoryFile() as memfile:
         # Create a new raster dataset
         with memfile.open(driver='GTiff', height=rows, width=cols, count=1,
@@ -1561,21 +1561,20 @@ def crop_show(crop_array ,shapefile):
             dataset.write(color_index, 1)
 
             # Plot the raster with shapefile boundaries
-            show((dataset, 1), ax=plt.gca(), cmap=cmap)
-        
+            fig, ax = plt.subplots(figsize=(10, 10))
+            show((dataset, 1), ax=ax, cmap=cmap)
+
             # Plot the shapefile boundary
-            shapefile.plot(ax=plt.gca(), facecolor='none', edgecolor='black')
-            
+            shapefile.plot(ax=ax, facecolor='none', edgecolor='black')
+
             # Create a legend for color-to-crop mapping
-            legend_patches = [mpatches.Patch(color=cmap(i), label=crop) for crop, i in crop_indices.items()]
+            legend_patches = [mpatches.Patch(color=cmap(crop_indices[crop]), label=crop) for crop in crop_names]
             plt.legend(handles=legend_patches, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
 
-
-
-    # Set the title and show the plot
-        plt.title('Crop Raster with Shapefile Boundaries')
-        plt.show()
-
+            # Set the title and show the plot
+            plt.title('Crop Raster with Shapefile Boundaries')
+            plt.show()
+    
 
 # These are the final visualisation functions which output the net raw biomass energy potential from the marginal and the cropland respectively and show them with an interactive plotly graph.
 
