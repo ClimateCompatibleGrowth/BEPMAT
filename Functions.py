@@ -32,7 +32,7 @@ import geopandas as gpd
 from shapely.geometry import Point
 
 # Importing required libraries for plotting interactive rasters 
-from bokeh.plotting import figure, show
+from bokeh.plotting import figure
 from bokeh.models import LinearColorMapper, ColorBar, HoverTool, GeoJSONDataSource
 import bokeh.palettes as bp
 import bokeh.plotting as bpl
