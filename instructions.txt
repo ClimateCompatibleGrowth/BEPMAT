@@ -1,5 +1,0 @@
-The following are the instructions to run this application on your local computer:
-1. Create a new environment separately using conda. (The version of python used is 3.11.4)
-2. Activate the new environment and then download the following libraries using conda forge: Geopandas, Rasterio, Pyshp
-3. Use pip to download the other libraries : gadm, flask, pykml, plotly, xarray
-4. Open the repository on your terminal, actiavte the environment and then run python app.py. You should see the app running on your local computer.
