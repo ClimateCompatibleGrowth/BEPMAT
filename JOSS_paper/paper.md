@@ -28,7 +28,7 @@ bibliography: paper.bib
 The Biomass Energy Potential Mapping and Analysis Tool is an open-source software which aims to estimate the theoretical amount of energy that can be extracted from crop residues in a particular place (upto province) , in a particular year (till 2100) under various climate pathways, using different irrigation methods and climate models. We hope that this will help policymakers identify which crops to grow on currently unused land and how much energy they will be able to extract from it. It can also help them identify how much energy they will be able to extract from the existing cropland. This paper just presents a short summary of the methodology of the tool, for further details into how each function works, we suggest you go through with the attached jupyter notebook and the documentation of the tool.    
 
 # Statement of Need 
-
+This tool is aimed at bringing into view the potential for providing energy through biomass like crop residues. The demand for energy is forever rising and will continue to rise in the coming years and bioenergy obtained from crop residues can help reduce the burden on other renewable sources of energy. Although some other tools like this do exist , none of them are open-source and freely available for use to the public. We believe making this tool open-source will also bring contributions to this tool in the future which would make it better and more useful to the scientific community. We hope this tool will serve as a framework for better tools whcih would help us explore the scope of energy from biomass in much more detail.
 
 # Data and Sources
 All of the following data has been obtained from the GAEZv4 built my FAOSTAT and IIASA : Classification of land into 57 Agro-Economic Zones , Production values and Harvested Area for 2000 and 2010 , Exclusion Areas and Tree Cover Share , Potential Yield for future years under different RCPs, water conditions and using different models. 
@@ -56,12 +56,21 @@ The tool offers a variety of features which can be explored and understood in mu
 - The tool also allows for flexibility incase someone wants to change the RPR,LHV and SAF values to suit the region of their choice.
 - Finally the Accessing_and_Visualising notebook shows how the data in the generated arrays can be visualised using bokeh plots.
 
+# Potential Future Advancements
+There is immense scope for further development of this tool and scope for adding various additional features which would make it much better and much more useful and a few of them are listed here :
+
+- There is scope for adding an adiditonal economic layer if the data is found for the cost of crop residues which would help the tool identify which crops are more feasible to grow in a region   
+- There is scope for improving the output of the tool if better values of RPR , SAF and LHV can be found for a particular region. Then inputting those values would make this tool more suited to that region.
+- Currently the tool only outputs theoretical energy potential but energy conversion pathways can be added and the user can be enabled to select the different pathways and the net actual energy output can be calculated this way. 
+
+The above described shortcomings of this tool are mainly due to the lack of availability of data on the internet regarding crop residues and the we hope that in the future more of this data can be generated and then incorporated with this tool to make it much more useful.
+
 # Figures 
-Add figures for a sample country.
+Showcasing sample output results for total land (cropland + marginal land) of this tool for the countries : New Zealand and Nigeria
+ 
+![Energy Potential from Total Land from New Zealand.\label{fig:NewZealand}](NewZealand.png)
+![Energy Potential from Total Land from Nigeria.\label{fig:Nigeria}](Nigeria.png)
 
-# Citations 
-Via the paper.bib
+# Acknowledgements
 
-# Acknowledgements 
-
-
+# References
