@@ -1,9 +1,12 @@
-title: 'Biomass Energy Potential Mapping and Analysis Tool (BEPMAT) using Python based libraries'
+---
+title: 'Biomass Energy Potential Mapping and Analysis Tool (BEPMAT)'
+
 tags:
   - Python
-  - biomass 
-  - energy 
-  - crop residues
+  - Biomass energy
+  - Crop residues
+  - Spatially explicit mapping
+  - Global Agro Ecological zoning (GAEZ)
   
 authors:
   - name: Divyansh Singhal
@@ -12,8 +15,12 @@ authors:
     affiliation: "1"
   - name: Vignesh Sridharan
     orcid : 0009-0003-2918-5125
-    equal-contrib: true 
+    equal-contrib: false 
     affiliation : "2"
+  - name: Adam Hawkes
+    orcid: 
+    equal-contrib: false
+    affiliation: "2"
 
 affiliations:
  - name: Indian Institute of Technology , Delhi , India
@@ -23,26 +30,25 @@ affiliations:
 
 date: 7 February 2024
 bibliography: paper.bib
+---
 
 # Summary
-The Biomass Energy Potential Mapping and Analysis Tool is an open-source software which aims to estimate the theoretical amount of energy that can be extracted from crop residues in a particular place (upto province) , in a particular year (till 2100) under various climate pathways, using different irrigation methods and climate models. We hope that this will help policymakers identify which crops to grow on currently unused land and how much energy they will be able to extract from it. It can also help them identify how much energy they will be able to extract from the existing cropland. This paper just presents a short summary of the methodology of the tool, for further details into how each function works, we suggest you go through with the attached jupyter notebook and the documentation of the tool.    
+Energy systems models (`ESMs`) use resource energy potentials as inputs to estimate the amount of energy that can be produced from a selected source of electricity generation. These energy potential numbers are spatially explicit in nature, specifically for renewable sources like solar, wind, hydropower and biomass. BEPMAT-The Biomass Energy Potential Mapping and Analysis Tool aims to estimate this (theoretical) energy potential from crop residues in a spatially explicit manner (up to province level detail per country). The outputs are provided for a baseline year and three temporal periods (2011-2040, 2040-2070, 2070-2100) under multiple representative concentration pathways (RCPs) from selected climate models. This tool, based on a jupyter notebook setup, will help Energy systems modelers to identify crops to grow on currently unused land and energy potential, and also estimate energy potential in crop residues from the land currently under crop cultivation. 
 
 # Statement of Need 
-This tool is aimed at bringing into view the potential for providing energy through biomass like crop residues. The demand for energy is forever rising and will continue to rise in the coming years and bioenergy obtained from crop residues can help reduce the burden on other renewable sources of energy. Although some other tools like this do exist , none of them are open-source and freely available for use to the public. We believe making this tool open-source will also bring contributions to this tool in the future which would make it better and more useful to the scientific community. We hope this tool will serve as a framework for better tools whcih would help us explore the scope of energy from biomass in much more detail.
+There exist multiple open source tools that estimate the energy potentials for solar and wind <give sources for existing tools like Renewable ninja and solar and wind atlas>, however there exist a limited set of options for estimating the energy potential from biomass sources. Further more, most of them <give sources for existing tools> are not intuitive and difficult to use and not based on consistent data sources. `BEPMAT` is a tool aimed at bridging this gap by providing biomass energy potentials in a format that is easily assimilated into ESMs. `BEPMAT`, in addition to its primary objective, also provides the user the choice to specify the spatial dimension based on global administrative boundaries (gadm) and also the ability to choose crops that are the most suitable to grow within the selected boundaries. The tool also allows the user to download all the processed raw data in different formats <CSV, NETCDF4>. Structured with continuos text as part of a jupyter notebook, the tool also provides detailed maps as part of the output. Some examples have been provided to guide the users through the process.
 
 # Data and Sources
-All of the following data has been obtained from the GAEZv4 built my FAOSTAT and IIASA : Classification of land into 57 Agro-Economic Zones , Production values and Harvested Area for 2000 and 2010 , Exclusion Areas and Tree Cover Share , Potential Yield for future years under different RCPs, water conditions and using different models. 
-
-The Pastureland dataset used is SEDAC pastureland 2000 dataset and the shapefiles (GADM boundaries) have been obtained using the python library gadm. The RPR, LHV and SAF data has been obtained from multiple papers and these sources are detailed in the documentation.
+All the crop specific data used by `BEPMAT` has been obtained from the GAEZ-v4 built my FAOSTAT and IIASA <provide the main reference>. These include Classification of land into 57 Agro-Economic Zones , crop production values and Harvested Area for 2000 and 2010 , exclusion areas and tree Cover Shares. The potential crop yield numbers for the future under different RCPs and water supply options for selected climate models were also sourced from GAEZ-V4. The Pastureland dataset used is SEDAC pastureland 2000 dataset and the shapefiles (GADM boundaries) have been obtained using the python library gadm <provide the main reference>. The RPR, LHV and SAF<needs expansion of short forms> data has been obtained from multiple papers and these sources are detailed in the documentation.
 
 # Methodology
-The tool first identifies the total available land which can be used for growing crops. This is done by first taking the whole area in the selected geography and then removing various land utilisation types (LUTs) from it which are unfit for growing crops, we further remove protected areas, tree covered regions and water bodies. After this we are left with the total available land. 
+The tool first identifies the total available land which can be used for growing crops. This is done by first taking the whole area in the selected geography and then excluding various land utilisation types (LUTs) which are unfit for growing crops, we further remove protected areas, tree covered regions and water bodies. After this we are left with the total available land. 
 
-This land is further split into two components : cropland and marginal land. The cropland is the land where the crops are currently being grown and we have assumed that this area remains constant thorughout and the yield on this land keeps on varying with tie leading to different levels of crop production. Assuming the same crops grow on same chunks of land, we can obtain an estimate of the amount of energy that can be extracted from cropland. Next we remove this land from the total available land to find the remaining marginal land. On this marginal land, we iterate through all the crops possible and find out which one has the highest yield. Next we select this crop and this is multiplied by the area to get the net production.
+This land is further split into two components : cropland and marginal land. The cropland is the land where the crops are currently being grown and we have assumed that this area remains constant throughout the analysis and the yield on this land changes with time, based on the climate, leading to different levels of crop production. Assuming the same crops grow on same chunks of land, we can obtain an estimate of the amount of energy that can be extracted from cropland. Next we remove this land from the total available land to find the remaining marginal land. On this marginal land, we iterate through all the crops possible and find out which one has the highest yield. Next we select this crop and this is multiplied by the area to get the net production.
 
-After obtaining the production of crop from cropland and marginal land, we use three factors to identify the theoretical amount of energy we can extract from the selected region. The Residue-to-Product Ratio(RPR) , The Surplus Availability Factor(SAF) and The Lower Heating Value(LHV) are used to identify how much amount of residue is produced per kg of crop , then SAF tells us how much of this residue can be used for energy extraction purposes and finally LHV tells us the theoretical amount of energy we can obtain from a particular residue.
+After obtaining the production of crop from cropland and marginal land, we use three factors to identify the theoretical amount of energy we can extract from the selected region. The Residue-to-Product Ratio(RPR) , The Surplus Availability Factor(SAF) and The Lower Heating Value(LHV) are used to identify how much amount of residue is produced from each kg of crop , then SAF tells us how much of this residue can be used for energy extraction purposes and finally LHV tells us the theoretical amount of energy we can obtain from a particular residue.
 
-# Formulaes and Calculations
+# Formulaes and Calculations (needs some work)
 
 For a particular crop: \begin{equation}
 \text{Theoretical Energy Potential} = \sum_{i} \text{Yield}_i \times \text{Area}_i \times \text{LHV}_i \times \text{SAF}_i \times \text{RPR}_i
@@ -56,7 +62,7 @@ The tool offers a variety of features which can be explored and understood in mu
 - The tool also allows for flexibility incase someone wants to change the RPR,LHV and SAF values to suit the region of their choice.
 - Finally the Accessing_and_Visualising notebook shows how the data in the generated arrays can be visualised using bokeh plots.
 
-# Potential Future Advancements
+# Potential Future Advancements (move to the jupyter notebook)
 There is immense scope for further development of this tool and scope for adding various additional features which would make it much better and much more useful and a few of them are listed here :
 
 - There is scope for adding an adiditonal economic layer if the data is found for the cost of crop residues which would help the tool identify which crops are more feasible to grow in a region   
@@ -65,12 +71,14 @@ There is immense scope for further development of this tool and scope for adding
 
 The above described shortcomings of this tool are mainly due to the lack of availability of data on the internet regarding crop residues and the we hope that in the future more of this data can be generated and then incorporated with this tool to make it much more useful.
 
-# Figures 
+# Figures (units for y axis, which country. can we show a spatial map?)
 Showcasing sample output results for total land (cropland + marginal land) of this tool for the countries : New Zealand and Nigeria
  
 ![Energy Potential from Total Land from New Zealand.\label{fig:NewZealand}](NewZealand.png)
 ![Energy Potential from Total Land from Nigeria.\label{fig:Nigeria}](Nigeria.png)
 
 # Acknowledgements
+
+This material has been produced with support from the Climate Compatible Growth (CCG) programme , which brings together leading research organizations and is led out of the STEER centre, Loughborough University. CCG is funded by UK aid from the UK government. However, the views expressed herein do not necessarily reflect the UK government’s official policies.
 
 # References
