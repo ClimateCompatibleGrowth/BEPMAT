@@ -14,11 +14,11 @@ authors:
     equal-contrib: true
     affiliation: "1"
   - name: Vignesh Sridharan
-    orcid : 0009-0003-2918-5125
+    orcid : 0000-0003-0764-2615
     equal-contrib: false 
     affiliation : "2"
   - name: Adam Hawkes
-    orcid: 
+    orcid: 0000-0001-9720-332X
     equal-contrib: false
     affiliation: "2"
 
