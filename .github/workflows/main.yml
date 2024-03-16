@@ -11,8 +11,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0  # Ensures the entire repo history is checked out
 
     - name: Install Pandoc
       run: |
@@ -23,9 +21,12 @@ jobs:
     - name: Install TinyTeX
       run: |
         wget -qO- "https://yihui.org/tinytex/install-bin-unix.sh" | sh
-        export PATH=$PATH:~/bin
-        tlmgr install latexmk
-        tlmgr install scheme-small  # This installs pdflatex among other basic packages
+        export PATH=$PATH:~/.TinyTeX/bin/x86_64-linux
+        tlmgr install pdflatex
 
     - name: Compile paper
-      run: pandoc JOSS_paper/paper.md -o JOSS_paper/paper.pdf --citeproc --bibliography=JOSS_paper/paper.bib
+      run: |
+        export PATH=$PATH:~/.TinyTeX/bin/x86_64-linux
+        pandoc JOSS_paper/paper.md -o JOSS_paper/paper.pdf --citeproc --bibliography=JOSS_paper/paper.bib
+
+     
