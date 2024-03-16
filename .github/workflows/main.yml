@@ -17,3 +17,9 @@ jobs:
     - name: Compile paper
       run: |
         pandoc JOSS_paper/paper.md -o JOSS_paper/paper.pdf --citeproc --bibliography=JOSS_paper/paper.bib
+        
+    - name: Upload PDF as Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: compiled-paper
+        path: JOSS_paper/paper.pdf
