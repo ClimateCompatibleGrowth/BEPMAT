@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - your-branch-name # Update with your branch name
 
 jobs:
   build:
@@ -17,9 +18,10 @@ jobs:
 
     - name: Compile paper
       run: pandoc paper.md -o paper.pdf --filter pandoc-citeproc --bibliography=paper.bib
+      working-directory: JOSS_paper
 
     - name: Upload PDF
       uses: actions/upload-artifact@v2
       with:
         name: paper.pdf
-        path: paper.pdf
+        path: JOSS_paper/paper.pdf
