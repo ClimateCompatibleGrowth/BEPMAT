@@ -2,6 +2,9 @@
 
 This tool is designed to provide an estimate of the raw biomass energy potential from crop residues in any selected geography. We provide the options to obtain the biomass energy potential using different climate models ,different climate pathways and different time periods (including past and future). This tool aims to help researchers and policy makers make decisions on which crop to grow in any particular region in the future in order to obtain maximum energy from that land. For more details , we suggest you go through the attached documentation once.
 
+![Methodology Workflow](graphviz.png)
+Methodology Workflow
+
 
 ## Table of Contents
 
