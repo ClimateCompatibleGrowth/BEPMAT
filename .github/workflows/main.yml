@@ -1,0 +1,15 @@
+name: Compile Paper
+
+on: [push]
+
+jobs:
+  paper:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Compile Paper
+      uses: openjournals/whedon-action@0.1.0
+      with:
+        # This is the path to your paper.md and references.bib
+        # Adjust the path according to your repository structure
+        path: 'JOSS_paper'
