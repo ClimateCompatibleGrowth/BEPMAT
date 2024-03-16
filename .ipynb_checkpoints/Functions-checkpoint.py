@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Biomass Energy Potential Mapping Tool 
+# # Biomass Energy Potential Mapping and Analysis Tool (BEPMAT)
 
-# This notebook contains all the functions used in the project along with data used. We request you to kindly go through the paper first to get an idea of the objectives and the methodology.
+# ### This notebook contains all the functions used in the project along with the data. We request you to kindly go through the supporting text on the GitHub repository and the article, available as a preprint (Insert Zenodo doi) to get an idea of the objectives and the methodology.
 
 # ## Loading all the CSVs containing the required raster files
 
-# In[1]:
+# In[12]:
 
 
 # Importing a few important libraries essential to the work.
@@ -41,6 +41,8 @@ import matplotlib.patches as mpatches
 import plotly
 import plotly.graph_objects as go
 import plotly.io as pio
+import seaborn as sns
+from bokeh.palettes import magma
 
 # Importing required libraries to obtain shapefiles
 import gadm
@@ -88,14 +90,14 @@ def shapefile_generator(country, province=None):
         return gdf_country
 
 
-# ## Notebook workflow: 
-# 1. We start with the simplest calculations of the raw biomass energy we could have obtained from the harvests in the past using the 2000 and 2010 data (This is only applicable for cropland since this was the land that was actually harvested and we are keeping the marginal for maximizing the energy output in the future).
-# 2. Next we will calculate the residue and the raw biomass energy potential from the cropland in the future 
-# 3. Finally we will calculate the residue and the raw biomass energy potential from the marginal land in the future
-# 
-# We will keep defining the many helper functions along the way wherever they are required.
+# ## Notebook work flow: 
+# - We start with the simplest calculations of the raw biomass energy we could have obtained from the harvests in the past using the data for years 2000 and 2010 (This is only applicable for cropland since this was the land that was actually harvested and we are keeping the marginal for maximizing the energy output in the future).
+# - Next we will calculate the residue and the raw biomass energy potential from the cropland in the future 
+# - Finally we will calculate the residue and the raw biomass energy potential from the marginal land in the future
+# - We will keep defining helper functions along the way wherever required.
 
-# ## I. Raw Biomass Energy Potential from Agricultural Residues using Actual Yields and Production (2000 and 2010) [GAEZv4 Theme: 5]
+# ## I. Raw Biomass Energy Potential from Agricultural Residues using Actual Yields and Production (2000 and 2010) [GAEZv4 Theme 5 : Actual Yields and Productions]
+# Theme 5 spatial layers include mapped distributions of harvested area, yield and production at 5 arc-minute resolution for 26 major crops/crop groups, separately in rain-fed and irrigated cropland. Country totals are based on FAO statistics for the years 2009-2011. Also included are estimates of the spatial distribution of total crop production value and the production values of major crop groups (cereals, root crops, oil crops), all valued at year 2000 international prices, separately for rain-fed and irrigated cropland. 
 
 # ### Creating the dataset for calculating the biomass energy potential from the production values
 
@@ -178,7 +180,7 @@ def shapefile_generator(country, province=None):
 # 
 # Assumptions made on the basis of GAEZ V4 documentation, from which we are using actual yield data:
 # - Stimulants in the GAEZ v4 includes Cocoa Beans, Coffee, Green Tea, Tea. We have till now considered only Cocoa and Coffee.
-# - In Yams and other roots, till now we have only included Yams and CocoYams(Taro)
+# - In Yams and other roots, till now we have only included Yams and Coco Yams(Taro)
 # - In Vegetables we have taken Green and Red Peppers (Residues), Tomatoes (Stem and Leaves) and Lettuce (Waste) (We will take their mean value for RPR, SAF, and LHV since individual weightage in the crop yield is not available.)
 # - In Pulses, we have taken Tur, Gaur, Gram, Beans and Lentils.(We will use their average based on same reason as above).
 # - In Other Cereals, we have taken oats and rye.(We will use their average based on same reason as above).
@@ -208,7 +210,7 @@ def shapefile_generator(country, province=None):
 # - p. https://www.diva-portal.org/smash/get/diva2:1208954/FULLTEXT01.pdf.
 # - q.https://www.researchgate.net/publication/317490809_VALORIZATION_OF_SUGAR_BEET_PULP_RESIDUE_AS_A_SOLID_FUEL_VIA_TORREFACTION
 
-# Now the final table sorted on the crop names which will be converted into a pandas dataframe for us to use will contain: 
+# Now the final table sorted by crop names which will be converted into a pandas data frame for us to use will contain: 
 # - All the vegetables combined into Vegetables row.
 # - Coffee & Cocoa combined under stimulants row.
 # - All the pulses as mentioned above will be grouped under pulses row.
@@ -251,16 +253,16 @@ def shapefile_generator(country, province=None):
 # | Soybean      | Pods          | 1     | 0.8   | 18          |
 # | Soybean      | Straw         | 2.66  | 0.8   | 18          |
 # | Stimulants   | husks         | 1     | 1     | 14.14       |
-# | Sugar Cane   | baggase       | 0.25  | 1     | 6.43        |
+# | Sugar Cane   | bagasse       | 0.25  | 1     | 6.43        |
 # | Sugar Cane   | tops/leaves   | 0.32  | 0.8   | 15.8        |
-# | Sugarbeet    | residue       | 0.66  | 0.09  | 20.85       |
+# | Sugar beet   | residue       | 0.66  | 0.09  | 20.85       |
 # | Sunflower    | stalk         | 2.50  | 0.60  | 14.2        |
 # | Tobacco      | stalk         | 1.20  | 0.60  | 16.1        |
 # | Vegetables   | residue       | 0.675 | 0.50  | 12.625      |
 # | Wheat        | Husk          | 0.23  | 0.29  | 12.9        |
 # | Wheat        | Straw         | 1.2   | 0.29  | 15.6        |
 # | Yam and others| Peelings     | 0.2   | 0.8   | 10.61       |
-# | Rest of crops| Resdiue       | 0.0   | 0.0   | 0           |
+# | Rest of crops| Residue       | 0.0   | 0.0   | 0           |
 # |
 # 
 
@@ -325,8 +327,8 @@ columns = ['Crop', 'Residue Type', 'RPR', 'SAF', 'LHV (MJ/kg)']
 residue_values = pd.DataFrame(data, columns=columns)
 
 
-# ### Defining the function for calculating raw biomass energy potential in the past (2000 and 2010)
-# It outputs an xarray containing all the crops and their corresponding biomass energy potential in each pixel and a final xarray called 'Combined' which gives the sum of all of these.
+# ### Defining the function for calculating raw biomass energy potential in the past (years 2000 and 2010)
+# This function will output an xarray containing all the crops and their corresponding biomass energy potential in each pixel and a final xarray called 'Combined' which gives the sum of all of these.
 
 # In[6]:
 
@@ -434,7 +436,9 @@ def biomass_potential_past(shapefile, time_period, water_supply):
 
 
 # #### Additional functions:
-# The following functions are available if you just need the final numbers for the raw biomass energy potential for the region. It has two options either it can give you the net or it can give you the values for a specific crop as well.
+# - The following functions help estimate the final numbers for the raw biomass energy potential for a region. It has two options.
+#     - Consolidated crop agnostic estimate
+#     - Crop-specific estimate
 
 # In[9]:
 
@@ -456,9 +460,13 @@ def get_actual_data_biomass_potential_crop(shapefile, time_period, water_supply,
     return answer
 
 
-# So the above functions and code finishes our task of getting the Raw Biomass Energy Potential from the Cropland in the past. Next we will see the functions for calculating the Raw Biomass Energy Potential from the Cropland in the future years.
+# So the above functions and code finishes our task of getting the Raw Biomass Energy Potential from the Cropland in the past. Next we will see the functions for calculating the Raw Biomass Energy Potential from the Cropland in the future.
 
-# ## II. Raw Biomass Energy Potential from Agricultural Residues using Actual Yields and Production for Harvested Area and Agro-Climatic Potential Yield for future yields [GAEZv4 Theme: 5 and 3 respectively]
+# ## II. Raw Biomass Energy Potential from Agricultural Residues using Actual Yields and Production for Harvested Area and Agro-Climatic Potential Yield for future yields [GAEZ-V4 Theme 5 and 3 respectively]
+# 
+# Theme 3 provides crop-wise information about: (1) Agro-Climatic Yield, (2) Constraint Factors, (3) Growth Cycle Attributes, and (4) Land Utilization Types (LUT) Selection.
+# 
+# Theme 5 spatial layers include mapped distributions of harvested area, yield and production at 5 arc-minute resolution for 26 major crops/crop groups, separately in rain-fed and irrigated cropland. Country totals are based on FAO statistics for the years 2009-2011. Also included are estimates of the spatial distribution of total crop production value and the production values of major crop groups (cereals, root crops, oil crops), all valued at year 2000 international prices, separately for rain-fed and irrigated cropland. 
 
 # Now since the future cropland data area data is not available to us we will be making an assumption. The assumption is that in the future the area under cropland which is required for us to ensure food security will remain the same as is was in the year 2010. So the harvest area data that we had from actual yields and production will serve as the cropland area for all future calculations. But since, with time the yield will vary and so will the residue from each crop. 
 # 
@@ -608,7 +616,9 @@ def future_residues_crop(crop, time_period, climate_model, rcp, water_supply_fut
 
 # So this completes all cropland residue calculations for us. Next we will move to residue and biomass energy potential from the marginal land but before we get into this we will have to generate the marginal land. So we need to extract certain pixels from certain rasters which will be masked later to account for removal of deserts, water, glaciers etc. as described in the paper
 
-# ## III. Raw Biomass Energy Potential from Agricultural Residues using Agro-Climatic Potential Yield for future yields data [GAEZv4 Theme: 3]
+# ## III. Raw Biomass Energy Potential from Agricultural Residues using Agro-Climatic Potential Yield for future yields data [GAEZ- V4 Theme: 3]
+# 
+# Theme 3 provides crop-wise information about: (1) Agro-Climatic Yield, (2) Constraint Factors, (3) Growth Cycle Attributes, and (4) Land Utilization Types (LUT) Selection.
 
 # Before moving on to describe the functions, we need to obtain the RPR, SAF and LHV values for the crops available in the potential yield theme in GAEZ. The following is the table followed by the assumptions made and references:
 
@@ -908,7 +918,7 @@ columns = ['Crop', 'Residue Type', 'RPR', 'SAF', 'LHV (MJ/kg)']
 all_residue_values = pd.DataFrame(data, columns=columns)
 
 
-# Helper function for clipping any raster according to the selected region
+# ### Helper function for clipping a raster according to the selected region
 
 # In[14]:
 
@@ -923,7 +933,7 @@ def maskingwithshapefile(shapefile, raster_path):
     return clipped
 
 
-# Helper functions for converting numpy arrays to raster format again to give us a clipped raster ( We have used the MemoryFile datatype in rasterio which allows us to create rasters in the active memory without the need to download these to the computer)
+# ### Helper functions for converting numpy arrays to raster format again to give us a clipped raster ( We have used the memory file data type in rasterio which allows us to create rasters in the active memory without the need to download these to the computer)
 
 # In[15]:
 
@@ -1017,7 +1027,7 @@ def array_to_inmemory_raster_for_non_clipped(array, transform, crs):
     return memory_file
 
 
-# Helper Functions for extracting select pixels from selected rasters and then putting them in a dataframe along with their coordinates so that they can be removed/masked later.
+# ### Helper Functions for extracting select pixels from selected rasters and then consolidating them in a data frame along with their coordinates so that they can be removed/masked later.
 
 # In[17]:
 
@@ -1063,7 +1073,7 @@ def coordinates_and_threshold(raster_path, threshold):
     return df
 
 
-# Helper functions for converting doing the clipping to shapefile and conversion back to raster in a single function & for converting dfs generated above to gdf so that the stored locations can be used to remove/mask these pixels later
+# ### Helper functions for converting the clipping to shape file and conversion back to raster in a single function . It also converts the data frames generated above to a GeoDataFrame (gdf) so that the stored locations can be used to remove/mask these pixels later
 
 # In[18]:
 
@@ -1095,7 +1105,7 @@ def convert_df_to_gdf(dataframe):
     return coordinates_gdf
 
 
-# Helper function for conversion of rasters from higher resolution to lower resolution
+# ### Helper function for conversion of rasters from higher to lower resolution
 
 # In[20]:
 
@@ -1138,7 +1148,7 @@ def resolution_converter_mode(raster_path , resampling_method):
     return array_to_inmemory_raster_for_non_clipped(reshaped_data, transform, crs_final)
 
 
-# Helper function for removal of accumulated pixels in the GeoDataFrame
+# ### Helper function for removal of accumulated pixels in the GeoDataFrame
 
 # In[21]:
 
@@ -1183,7 +1193,7 @@ def remove_pixels(raster_path, shapefile, geodataframe):
 # mask layer using the sample raster while assigning nodata values to the points we want removed. 
 
 
-# Helper function for going over the selected region and identifying which crop to grow to maximize energy extraction
+# ### Helper function for going over the selected region and identifying which crop to grow to maximize energy extraction
 
 # In[22]:
 
@@ -1296,7 +1306,7 @@ def find_max_for_each_pixel(time_period, climate_model, rcp, water_supply_future
     return biomass_potentials_dataset
 
 
-# Helper function for obtaining harvested area and for obtaining net pixel area for each pixel
+# ### Helper function for obtaining harvested area and the net pixel area for each pixel
 
 # In[23]:
 
@@ -1363,7 +1373,7 @@ def extract_pixel_area(raster_path, shapefile):
 
 
 # #### Final output function for marginal land data. 
-# - It outputs an xarray containg the energy yields of each crop for the selected geography (These are not multiplied by the area since the area is the same and this saves compute). 
+# - It outputs an xarray containing the energy yields of each crop for the selected geography (These are not multiplied by the area since the area is the same and this saves compute). 
 # - It also outputs the net biomass energy potential from the marginal land using the the crop energy yields which give the max energy extractable from each pixel. 
 # - Finally it outputs the sum of this final array described in the second point.
 
@@ -1430,7 +1440,7 @@ def get_biomass_potential_for_marginal(shapefile,time_period, climate_model, rcp
 
 # #### Total Raw Biomass Energy Potential : 
 # - This is the final total raw biomass energy potential function which gives us the sum of energy potential from each pixel for cropland and marginal land, which is the final intended output of our tool. 
-# - It also outputs a final xarray which contains everything under their respective headings.
+# - It also produces a final xarray which contains everything under their respective headings.
 
 # In[26]:
 
@@ -1454,9 +1464,9 @@ def get_total_biomass_potential(shapefile, time_period, climate_model, rcp, wate
     return total_biomass_dataset , cropland_dataset , marginal_land_dataset , marginal_land_array
 
 
-# Visualisation functions to be able to visualize the raster with pixel values shown & to show what crop is selected where incase of marginal lands
+# ### Functions to visualize the raster with pixel values shown & to display the crop selected int eh case of marginal lands
 
-# In[2]:
+# In[11]:
 
 
 # Assuming the rest of your code remains the same
@@ -1514,7 +1524,49 @@ def bokeh_plot(shapefile, array ):
     bpl.show(p)
 
 
-# In[28]:
+# In[13]:
+
+
+def bokeh_max_min_plot(shapefile, array):
+    with rasterio.open(potential_yield.iloc[2,14].strip()) as src:
+            standard_transform = src.transform 
+            standard_crs= src.crs
+
+    test = array_to_inmemory_raster_for_clipped(array, standard_transform, standard_crs, shapefile)
+    geojson = gpd.GeoSeries(shapefile.geometry).to_json()
+    geojson_data = GeoJSONDataSource(geojson=geojson)
+
+    src = rasterio.open(test)
+    data = src.read(1)
+    data = np.flipud(data)
+
+    min_x, min_y, max_x, max_y = src.bounds
+
+    # Ignore 0 as the minimum value and take the next higher value
+    # Filter the array to include only non-zero values, then find the minimum
+    non_zero_array = array[array > 0]
+    combined_min = non_zero_array.min().item() if non_zero_array.size > 0 else array.min().item()
+    combined_max = array.max().item()
+
+    palette = magma(256)  # Using the Magma palette, or choose another
+
+    mapper = LinearColorMapper(palette=palette, low=combined_min, high=combined_max)
+
+    p = figure(width=600, height=600, x_axis_label='Longitude', y_axis_label='Latitude', title='Interactive Raster')
+    p.image(image=[data], x=min_x, y=min_y, dw=(max_x - min_x), dh=(max_y - min_y), color_mapper=mapper)
+
+    color_bar = ColorBar(color_mapper=mapper, location=(0, 0))
+    p.add_layout(color_bar, 'right')
+
+    p.patches('xs', 'ys', source=geojson_data, line_color='black', fill_alpha=0)
+
+    hover = HoverTool(tooltips=[('Value', '@image')], mode='mouse')
+    p.add_tools(hover)
+
+    bpl.show(p)
+
+
+# In[9]:
 
 
 def crop_show(crop_array,shapefile):
@@ -1578,9 +1630,9 @@ def crop_show(crop_array,shapefile):
         plt.show()
 
 
-# These are the final visualisation functions which output the net raw biomass energy potential from the marginal and the cropland respectively and show them with an interactive plotly graph.
+# ### These are the final visualisation functions which output the net raw biomass energy potential from the marginal and the cropland respectively and show them with an interactive plotly graph.
 
-# In[2]:
+# In[6]:
 
 
 def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_level):
@@ -1630,7 +1682,7 @@ def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_
     fig.update_layout(
         barmode='group',
         xaxis_title='Years',
-        yaxis_title='Biomass Energy Potential from Cropland Land',
+        yaxis_title='Biomass Energy Potential from Cropland Land in PetaJoules',
         title='Cropland Biomass Energy Potential from different RCPs'
     )
     
@@ -1639,7 +1691,7 @@ def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_
     return fig, xarrays
 
 
-# In[3]:
+# In[4]:
 
 
 def graph_plotter_marginal(shapefile, climate_model, water_supply_future, input_level):
@@ -1666,7 +1718,7 @@ def graph_plotter_marginal(shapefile, climate_model, water_supply_future, input_
     fig.update_layout(
         barmode='group',
         xaxis_title='Time Periods',
-        yaxis_title='Biomass Energy Potential from Marginal Land',
+        yaxis_title='Biomass Energy Potential from Marginal Land in PetaJoules',
         title='Marginal Land Biomass Energy Potential from different RCPs in Time Periods'
     )
     
@@ -1675,7 +1727,7 @@ def graph_plotter_marginal(shapefile, climate_model, water_supply_future, input_
     return fig, xarrays, final_potentials
 
 
-# In[1]:
+# In[3]:
 
 
 def graph_plotter_all(shapefile, climate_model, water_supply_future, input_level, water_supply_2010):
@@ -1750,21 +1802,21 @@ def graph_plotter_all(shapefile, climate_model, water_supply_future, input_level
     fig_total.update_layout(
         barmode='group',
         xaxis_title='Time Periods',
-        yaxis_title='Biomass Energy Potential from Total Land',
+        yaxis_title='Biomass Energy Potential from Total Land in PetaJoules',
         title='Total Biomass Energy Potential from different RCPs in Time Periods'
     )
 
     fig_crop.update_layout(
         barmode='group',
         xaxis_title='Years',
-        yaxis_title='Biomass Energy Potential from Cropland Land',
+        yaxis_title='Biomass Energy Potential from Cropland Land in PetaJoules',
         title='Cropland Biomass Energy Potential from different RCPs'
     )
     
     fig_marg.update_layout(
         barmode='group',
         xaxis_title='Time Periods',
-        yaxis_title='Biomass Energy Potential from Marginal Land',
+        yaxis_title='Biomass Energy Potential from Marginal Land in PetaJoules',
         title='Marginal Land Biomass Energy Potential from different RCPs in Time Periods'
     )
     
