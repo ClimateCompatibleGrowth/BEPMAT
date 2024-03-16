@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - your-branch-name # Update with your branch name
 
 jobs:
   build:
@@ -12,6 +11,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # Ensures the entire repo history is checked out
 
     - name: Install Pandoc
       run: |
@@ -21,11 +22,3 @@ jobs:
 
     - name: Compile paper
       run: pandoc JOSS_paper/paper.md -o JOSS_paper/paper.pdf --citeproc --bibliography=JOSS_paper/paper.bib
-
-      working-directory: JOSS_paper
-
-    - name: Upload PDF
-      uses: actions/upload-artifact@v2
-      with:
-        name: paper.pdf
-        path: JOSS_paper/paper.pdf
