@@ -8,30 +8,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container: 
+      image: pandoc/latex:latest
 
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install Pandoc
-      run: |
-        wget https://github.com/jgm/pandoc/releases/download/2.14/pandoc-2.14-1-amd64.deb -O pandoc.deb
-        sudo dpkg -i pandoc.deb
-        pandoc --version
-
-    - name: Install TinyTeX
-      run: |
-        wget -qO- "https://yihui.org/tinytex/install-bin-unix.sh" | sh
-        echo "PATH=$HOME/.TinyTeX/bin/x86_64-linux:$PATH" >> $GITHUB_ENV
-        tlmgr path add
-
-    - name: Verify pdflatex installation
-      run: pdflatex --version
-
-
-
     - name: Compile paper
       run: |
-        export PATH=$PATH:~/.TinyTeX/bin/x86_64-linux
         pandoc JOSS_paper/paper.md -o JOSS_paper/paper.pdf --citeproc --bibliography=JOSS_paper/paper.bib
-
-     
