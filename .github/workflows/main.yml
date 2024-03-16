@@ -17,7 +17,8 @@ jobs:
       run: sudo apt-get install pandoc
 
     - name: Compile paper
-      run: pandoc paper.md -o paper.pdf --filter pandoc-citeproc --bibliography=paper.bib
+      run: pandoc JOSS_paper/paper.md -o JOSS_paper/paper.pdf --citeproc --bibliography=JOSS_paper/paper.bib
+
       working-directory: JOSS_paper
 
     - name: Upload PDF
