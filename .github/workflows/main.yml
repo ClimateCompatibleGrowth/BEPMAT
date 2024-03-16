@@ -21,10 +21,12 @@ jobs:
     - name: Install TinyTeX
       run: |
         wget -qO- "https://yihui.org/tinytex/install-bin-unix.sh" | sh
-        export PATH=$PATH:~/.TinyTeX/bin/x86_64-linux
+        echo "PATH=$HOME/.TinyTeX/bin/x86_64-linux:$PATH" >> $GITHUB_ENV
+        tlmgr path add
 
     - name: Verify pdflatex installation
       run: pdflatex --version
+
 
 
     - name: Compile paper
