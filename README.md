@@ -22,7 +22,7 @@ To install BEPMAT, follow these steps:
 
 ## Usage
 
-We provide a Jupyter notebook named UI.ipynb in the repository, which simplifies the usage of the tool. Additionaly, Sample_Use.ipynb is also present to show what the tool will output. Follow these steps to utilize the tool effectively:
+We provide a Jupyter notebook named UI.ipynb in the repository, which simplifies the usage of the tool. Additionaly, Examples.ipynb is also present to show what the tool will output. Follow these steps to utilize the tool effectively:
 
 1. Open the Notebook: Navigate to the UI.ipynb file in the repository and open it using Jupyter Notebook or JupyterLab. Please ensure that you have gone through the either the documentation or Functions.ipynb which would help you get a better idea of what the tool does.
 
