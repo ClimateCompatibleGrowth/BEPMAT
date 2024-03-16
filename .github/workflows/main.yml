@@ -24,7 +24,7 @@ jobs:
         export PATH=$PATH:~/.TinyTeX/bin/x86_64-linux
 
     - name: Verify pdflatex installation
-        run: pdflatex --version
+      run: pdflatex --version
 
 
     - name: Compile paper
