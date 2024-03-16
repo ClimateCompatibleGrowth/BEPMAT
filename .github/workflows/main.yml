@@ -20,5 +20,12 @@ jobs:
         sudo dpkg -i pandoc.deb
         pandoc --version
 
+    - name: Install TinyTeX
+      run: |
+        wget -qO- "https://yihui.org/tinytex/install-bin-unix.sh" | sh
+        export PATH=$PATH:~/bin
+        tlmgr install latexmk
+        tlmgr install scheme-small  # This installs pdflatex among other basic packages
+
     - name: Compile paper
       run: pandoc JOSS_paper/paper.md -o JOSS_paper/paper.pdf --citeproc --bibliography=JOSS_paper/paper.bib
