@@ -22,7 +22,10 @@ jobs:
       run: |
         wget -qO- "https://yihui.org/tinytex/install-bin-unix.sh" | sh
         export PATH=$PATH:~/.TinyTeX/bin/x86_64-linux
-        tlmgr install pdflatex
+
+    - name: Verify pdflatex installation
+        run: pdflatex --version
+
 
     - name: Compile paper
       run: |
