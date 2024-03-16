@@ -1,15 +1,25 @@
 name: Compile Paper
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
-  paper:
+  build:
     runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v2
-    - name: Compile Paper
-      uses: openjournals/whedon-action@0.1.0
+
+    - name: Install Pandoc
+      run: sudo apt-get install pandoc
+
+    - name: Compile paper
+      run: pandoc paper.md -o paper.pdf --filter pandoc-citeproc --bibliography=paper.bib
+
+    - name: Upload PDF
+      uses: actions/upload-artifact@v2
       with:
-        # This is the path to your paper.md and references.bib
-        # Adjust the path according to your repository structure
-        path: 'JOSS_paper'
+        name: paper.pdf
+        path: paper.pdf
