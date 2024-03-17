@@ -1524,7 +1524,7 @@ def bokeh_plot(shapefile, array ):
     bpl.show(p)
 
 
-# In[13]:
+# In[14]:
 
 
 def bokeh_max_min_plot(shapefile, array):
