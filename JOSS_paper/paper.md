@@ -55,7 +55,6 @@ For a particular crop, the theoretical energy potential can be calculated as fol
 \text{Theoretical Energy Potential} = \sum_{i} \text{Yield}_i \times \text{Area}_i \times \text{LHV}_i \times \text{SAF}_i \times \text{RPR}_i
 \end{equation}
 
-​
 # Features
 
 - The tool offers the ability to download all the data outputs in the form of NetCDF4 files.
