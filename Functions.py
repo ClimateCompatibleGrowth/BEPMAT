@@ -1632,7 +1632,7 @@ def crop_show(crop_array,shapefile):
 
 # ### These are the final visualisation functions which output the net raw biomass energy potential from the marginal and the cropland respectively and show them with an interactive plotly graph.
 
-# In[6]:
+# In[3]:
 
 
 def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_level):
@@ -1682,7 +1682,7 @@ def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_
     fig.update_layout(
         barmode='group',
         xaxis_title='Years',
-        yaxis_title='Biomass Energy Potential from Cropland Land in PetaJoules',
+        yaxis_title='Biomass Energy Potential from Cropland Land <br> in PetaJoules',
         title='Cropland Biomass Energy Potential from different RCPs'
     )
     
@@ -1691,7 +1691,7 @@ def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_
     return fig, xarrays
 
 
-# In[4]:
+# In[2]:
 
 
 def graph_plotter_marginal(shapefile, climate_model, water_supply_future, input_level):
@@ -1718,7 +1718,7 @@ def graph_plotter_marginal(shapefile, climate_model, water_supply_future, input_
     fig.update_layout(
         barmode='group',
         xaxis_title='Time Periods',
-        yaxis_title='Biomass Energy Potential from Marginal Land in PetaJoules',
+        yaxis_title='Biomass Energy Potential from Marginal Land <br> in PetaJoules',
         title='Marginal Land Biomass Energy Potential from different RCPs in Time Periods'
     )
     
@@ -1727,7 +1727,7 @@ def graph_plotter_marginal(shapefile, climate_model, water_supply_future, input_
     return fig, xarrays, final_potentials
 
 
-# In[3]:
+# In[1]:
 
 
 def graph_plotter_all(shapefile, climate_model, water_supply_future, input_level, water_supply_2010):
@@ -1802,21 +1802,21 @@ def graph_plotter_all(shapefile, climate_model, water_supply_future, input_level
     fig_total.update_layout(
         barmode='group',
         xaxis_title='Time Periods',
-        yaxis_title='Biomass Energy Potential from Total Land in PetaJoules',
+        yaxis_title='Biomass Energy Potential from Total Land <br> in PetaJoules',
         title='Total Biomass Energy Potential from different RCPs in Time Periods'
     )
 
     fig_crop.update_layout(
         barmode='group',
         xaxis_title='Years',
-        yaxis_title='Biomass Energy Potential from Cropland Land in PetaJoules',
+        yaxis_title='Biomass Energy Potential from Cropland Land <br> in PetaJoules',
         title='Cropland Biomass Energy Potential from different RCPs'
     )
     
     fig_marg.update_layout(
         barmode='group',
         xaxis_title='Time Periods',
-        yaxis_title='Biomass Energy Potential from Marginal Land in PetaJoules',
+        yaxis_title='Biomass Energy Potential from Marginal Land <br> in PetaJoules',
         title='Marginal Land Biomass Energy Potential from different RCPs in Time Periods'
     )
     

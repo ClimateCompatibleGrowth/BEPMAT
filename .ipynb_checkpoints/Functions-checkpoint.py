@@ -1517,14 +1517,14 @@ def bokeh_plot(shapefile, array ):
     p.patches('xs', 'ys', source=geojson_data, line_color='black', fill_alpha=0)
 
     # Add hover tool to display the pixel value when hovering over the raster
-    hover = HoverTool(tooltips=[('Value', '@image')], mode='mouse')
+    hover = HoverTool(tooltips=[('Value', '@image')], mode='mouse', point_policy = 'snap_to_data')
     p.add_tools(hover)
 
     # Show the plot
     bpl.show(p)
 
 
-# In[13]:
+# In[14]:
 
 
 def bokeh_max_min_plot(shapefile, array):
@@ -1560,7 +1560,7 @@ def bokeh_max_min_plot(shapefile, array):
 
     p.patches('xs', 'ys', source=geojson_data, line_color='black', fill_alpha=0)
 
-    hover = HoverTool(tooltips=[('Value', '@image')], mode='mouse')
+    hover = HoverTool(tooltips=[('Value', '@image')], mode='mouse', point_policy = 'follow_mouse')
     p.add_tools(hover)
 
     bpl.show(p)
