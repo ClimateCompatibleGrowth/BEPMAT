@@ -42,7 +42,9 @@ There exist multiple open source tools that estimate the energy potentials for s
 All the crop specific data used by `BEPMAT` has been obtained from the Global Agro-Ecological Zoning database (GAEZ-v4), developed by FAOSTAT and IIASA [@GAEZv4]. These include classification of the available land area into 57 Agro-Economic Zones, crop production values, Harvested Area, exclusion areas and tree Cover Shares for years 2000 and 2010. The potential crop yield numbers for the future under different RCPs and water supply options for selected climate models were also sourced from GAEZ-V4. The Pastureland dataset used is from Socioeconomic Data and Applications Center (SEDAC). The shapefiles (GADM boundaries) have been obtained using the python library gadm [@GlobalAdminAreas2023]. The data for Residue-to-Product Ratio(RPR) ,the Surplus Availability Factor(SAF) and the Lower Heating Value(LHV) has been obtained from multiple academic journals detailed in the documentation [@BioenergyCameroon2023].
 
 # Methodology
+
 ![Methodology Workflow.\label{fig:Workflow}](graphviz.png)
+
 The tool first identifies the total available land which can be used for growing crops. This is done by taking the whole area in the selected geography and excluding land utilisation types (LUTs) which are unfit for growing crops, we further remove protected areas, tree covered regions and water bodies. After this we are left with the total available land.This land is further split into two components : cropland and marginal land. The cropland is the land where the crops are currently being grown and we have assumed that this area remains constant throughout the analysis. However, the yield on this land changes with time, based on the climate, leading to different levels of crop production. Assuming the same crops grow on same chunks of land, we can obtain an estimate for the amount of energy that can be extracted from the cropland. Next we exclude this land from the total available land to find the remaining marginal land. On this marginal land, we iterate through a database of crops for their maximum agro-climatically attainable yield and select the best option. The yield of the chosen crop is multiplied by the area of marginal land to get the net production.
 
 Post computing crop production values for the cropland and marginal land, crop-specific factors (RPR,  SAF and LHV) are used to deduce the final energy potential. RPR helps estimate the amount of residue produced from each kg of crop, SAF aids in estimating the amount of residue that can be used for energy extraction purposes and finally LHV details the theoretical amount of energy we can obtain from a particular residue.
@@ -61,7 +63,6 @@ For a particular crop, the theoretical energy potential can be calculated as fol
 - The tool also produces several interactive graphs which can be used to compare the energy potentials at a glance. The figures below illustrate them for New Zealand and Nigeria respectively : 
 
   ![Energy Potential from Total Land from New Zealand](NewZealand.png)
-  
   ![Energy Potential from Total Land from Nigeria](Nigeria.png)
 
 - The tool also allows for flexibility incase someone wants to change the RPR,LHV and SAF values to suit the region of their choice.
