@@ -58,9 +58,11 @@ For a particular crop, the theoretical energy potential can be calculated as fol
 # Features
 
 - The tool offers the ability to download all the data outputs in the form of NetCDF4 files.
-- The tool also produces several interactive graphs which can be used to compare the energy potentials at a glance. The figures below illustrate them for selected geographies across the world : 
+- The tool also produces several interactive graphs which can be used to compare the energy potentials at a glance. The figures below illustrate them for selected geographies across the world.
+
 ![Energy Potential from Total Land from New Zealand](NewZealand.png)
 ![Energy Potential from Total Land from Nigeria](Nigeria.png)
+
 - The tool also allows for flexibility incase someone wants to change the RPR,LHV and SAF values to suit the region of their choice.
 - Finally the Jupyter notebooks shows how the data in the generated arrays can be visualised using bokeh plots.
 - The tool offers a variety of other features which are explained in detail in the jupyter notebooks and the attached supplementary documentation
