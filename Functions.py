@@ -7,7 +7,7 @@
 
 # ## Loading all the CSVs containing the required raster files
 
-# In[1]:
+# In[31]:
 
 
 # Importing a few important libraries essential to the work.
@@ -42,7 +42,7 @@ import plotly
 import plotly.graph_objects as go
 import plotly.io as pio
 import seaborn as sns
-from bokeh.palettes import magma
+from bokeh.palettes import magma , Blues8 , plasma
 
 # Importing required libraries to obtain shapefiles
 import gadm
@@ -1465,7 +1465,7 @@ def get_total_biomass_potential(shapefile, time_period, climate_model, rcp, wate
 
 # ### Functions to visualize the raster with pixel values shown & to display the crop selected int eh case of marginal lands
 
-# In[11]:
+# In[32]:
 
 
 # Assuming the rest of your code remains the same
@@ -1499,7 +1499,7 @@ def bokeh_plot(shapefile, array ):
     combined_max = array.max().item()
 
     # Create a new color mapper for the raster data
-    mapper = LinearColorMapper(palette=bp.viridis(256), low=combined_min, high=combined_max)
+    mapper = LinearColorMapper(palette=bp.Blues8, low=combined_min, high=combined_max)
 
 
     # Create a Bokeh figure
@@ -1523,7 +1523,7 @@ def bokeh_plot(shapefile, array ):
     bpl.show(p)
 
 
-# In[14]:
+# In[33]:
 
 
 def bokeh_max_min_plot(shapefile, array):
@@ -1547,7 +1547,7 @@ def bokeh_max_min_plot(shapefile, array):
     combined_min = non_zero_array.min().item() if non_zero_array.size > 0 else array.min().item()
     combined_max = array.max().item()
 
-    palette = magma(256)  # Using the Magma palette, or choose another
+    palette = plasma(256)  # Using the Magma palette, or choose another
 
     mapper = LinearColorMapper(palette=palette, low=combined_min, high=combined_max)
 
@@ -1565,7 +1565,7 @@ def bokeh_max_min_plot(shapefile, array):
     bpl.show(p)
 
 
-# In[28]:
+# In[30]:
 
 
 def crop_show(crop_array,shapefile):
@@ -1617,7 +1617,6 @@ def crop_show(crop_array,shapefile):
             # Plot the shapefile boundary
             shapefile.plot(ax=ax, facecolor='none', edgecolor='black')
             
-            # Adjust legend_patches to include 'None'
             legend_patches = [mpatches.Patch(color=cmap(i), label=crop) for crop, i in crop_indices.items()]
             plt.legend(handles=legend_patches, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
     
