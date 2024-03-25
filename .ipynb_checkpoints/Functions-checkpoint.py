@@ -7,7 +7,7 @@
 
 # ## Loading all the CSVs containing the required raster files
 
-# In[12]:
+# In[1]:
 
 
 # Importing a few important libraries essential to the work.
@@ -49,7 +49,7 @@ import gadm
 from gadm import GADMDownloader
 
 
-# In[3]:
+# In[2]:
 
 
 # Uploading all the CSVs into pandas DataFrmes
@@ -70,7 +70,7 @@ aez_classification = pd.read_csv("./dataset/Classificationzones57.csv")
 
 # ## Creating a shapefile generator which can generate the gadm shapefile for any region.
 
-# In[4]:
+# In[3]:
 
 
 def shapefile_generator(country, province=None):
@@ -268,7 +268,7 @@ def shapefile_generator(country, province=None):
 
 # ### REMARK : Incase you have your own RPR , SAF and LHV values for your region, we request you to fork this repository and modify the values accordingly to obtain more region specific results.
 
-# In[5]:
+# In[4]:
 
 
 # Now importing the table in pandas format so that we can use it for geospatial analysis
@@ -330,7 +330,7 @@ residue_values = pd.DataFrame(data, columns=columns)
 # ### Defining the function for calculating raw biomass energy potential in the past (years 2000 and 2010)
 # This function will output an xarray containing all the crops and their corresponding biomass energy potential in each pixel and a final xarray called 'Combined' which gives the sum of all of these.
 
-# In[6]:
+# In[5]:
 
 
 # The band dimension comes up in a lot of places and is not needed for our calculations
@@ -340,7 +340,7 @@ def remove_band_dimension(array):
     return array
 
 
-# In[7]:
+# In[6]:
 
 
 def get_lat_lon_from_transform(transform, shape):
@@ -349,7 +349,7 @@ def get_lat_lon_from_transform(transform, shape):
     return lats, lons
 
 
-# In[8]:
+# In[7]:
 
 
 def biomass_potential_past(shapefile, time_period, water_supply):
@@ -440,7 +440,7 @@ def biomass_potential_past(shapefile, time_period, water_supply):
 #     - Consolidated crop agnostic estimate
 #     - Crop-specific estimate
 
-# In[9]:
+# In[8]:
 
 
 def get_actual_data_biomass_potential_all(shapefile, time_period, water_supply):
@@ -472,7 +472,7 @@ def get_actual_data_biomass_potential_crop(shapefile, time_period, water_supply,
 # 
 # Assuming that RPR, SAF and LHV values also remain same for the crops in the future we will get the harvested area from the 2010 data for any shapefile and then multiply it with the future yield to get the future production. This will further be multiplied by RPR, SAF and LHV giving us raw biomass energy potential from cropland in the future. These values can then be compared with the past values calculated in part I to give us an idea as to how different future conditions affect the energy poential of the cropland. 
 
-# In[10]:
+# In[9]:
 
 
 def future_potential_cropland(time_period, climate_model, rcp, water_supply_future, input_level, shapefile_path, water_supply_2010):
@@ -586,7 +586,7 @@ def future_potential_cropland(time_period, climate_model, rcp, water_supply_futu
 # The following functions are available if you just need the final numbers for the biomass energy potential for the 
 # region. It has two options either it can give you the net or it can give you the values for a specific crop as well.
 
-# In[11]:
+# In[10]:
 
 
 # Function doing as described above
@@ -600,7 +600,7 @@ def future_residues_all(time_period, climate_model, rcp, water_supply_future, in
     return answer
 
 
-# In[12]:
+# In[11]:
 
 
 # We also wanted to create a function that does this for a single crop as well.
@@ -781,7 +781,7 @@ def future_residues_crop(crop, time_period, climate_model, rcp, water_supply_fut
 # - Miscanthus RPR/SAF & LHV: https://www.sciencedirect.com/science/article/pii/S1161030101001022. & https://www.researchgate.net/publication/338950136_Calorific_values_of_Miscanthus_x_giganteus_biomass_cultivated_under_suboptimal_conditions_in_marginal_soils            
 # - Para Rubber : None
 
-# In[13]:
+# In[12]:
 
 
 # The final crop data being added to a pandas dataframe:
@@ -920,7 +920,7 @@ all_residue_values = pd.DataFrame(data, columns=columns)
 
 # ### Helper function for clipping a raster according to the selected region
 
-# In[14]:
+# In[13]:
 
 
 def maskingwithshapefile(shapefile, raster_path):
@@ -935,7 +935,7 @@ def maskingwithshapefile(shapefile, raster_path):
 
 # ### Helper functions for converting numpy arrays to raster format again to give us a clipped raster ( We have used the memory file data type in rasterio which allows us to create rasters in the active memory without the need to download these to the computer)
 
-# In[15]:
+# In[14]:
 
 
 # For clipped arrays :
@@ -992,7 +992,7 @@ def array_to_inmemory_raster_for_clipped(array, transform, crs, shapefile):
     return memory_file
 
 
-# In[16]:
+# In[15]:
 
 
 # For Non-Clipped :
@@ -1029,7 +1029,7 @@ def array_to_inmemory_raster_for_non_clipped(array, transform, crs):
 
 # ### Helper Functions for extracting select pixels from selected rasters and then consolidating them in a data frame along with their coordinates so that they can be removed/masked later.
 
-# In[17]:
+# In[16]:
 
 
 # Once we have the rasters we are ready to extract specific pixels from it. The following functions
@@ -1075,7 +1075,7 @@ def coordinates_and_threshold(raster_path, threshold):
 
 # ### Helper functions for converting the clipping to shape file and conversion back to raster in a single function . It also converts the data frames generated above to a GeoDataFrame (gdf) so that the stored locations can be used to remove/mask these pixels later
 
-# In[18]:
+# In[17]:
 
 
 def clipper(shapefile, raster_path):
@@ -1090,7 +1090,7 @@ def clipper(shapefile, raster_path):
     return output_raster
 
 
-# In[19]:
+# In[18]:
 
 
 # Creating this function since both the value and threshold functions give us dataframes and we will need
@@ -1107,7 +1107,7 @@ def convert_df_to_gdf(dataframe):
 
 # ### Helper function for conversion of rasters from higher to lower resolution
 
-# In[20]:
+# In[19]:
 
 
 # Also since the crop data is in a lower resolution than the AEZ classsification and other data so we will also 
@@ -1150,11 +1150,10 @@ def resolution_converter_mode(raster_path , resampling_method):
 
 # ### Helper function for removal of accumulated pixels in the GeoDataFrame
 
-# In[21]:
+# In[20]:
 
 
 # To explain it a bit more, what we do is get those pixels and assign the pixels to be removed a nodata value.
-
 
 def remove_pixels(raster_path, shapefile, geodataframe):
     with rasterio.open(raster_path) as src:
@@ -1517,7 +1516,7 @@ def bokeh_plot(shapefile, array ):
     p.patches('xs', 'ys', source=geojson_data, line_color='black', fill_alpha=0)
 
     # Add hover tool to display the pixel value when hovering over the raster
-    hover = HoverTool(tooltips=[('Value', '@image')], mode='mouse', point_policy = 'snap_to_data')
+    hover = HoverTool(tooltips=[('Value', '@image')], mode='mouse')
     p.add_tools(hover)
 
     # Show the plot
@@ -1560,51 +1559,47 @@ def bokeh_max_min_plot(shapefile, array):
 
     p.patches('xs', 'ys', source=geojson_data, line_color='black', fill_alpha=0)
 
-    hover = HoverTool(tooltips=[('Value', '@image')], mode='mouse', point_policy = 'follow_mouse')
+    hover = HoverTool(tooltips=[('Value', '@image')], mode='mouse')
     p.add_tools(hover)
 
     bpl.show(p)
 
 
-# In[9]:
+# In[28]:
 
 
 def crop_show(crop_array,shapefile):
-# Define a colormap for different crops
-    cmap = plt.get_cmap('tab20b')
-
-# Create a color index array based on the unique crop names
+    
     crop_names = np.unique(crop_array)
     crop_indices = {crop: i for i, crop in enumerate(crop_names)}
-
-# Convert crop names to corresponding color indices
     color_index = np.vectorize(crop_indices.get)(crop_array)
-
-# Assuming you have loaded the shapefile using rasterio
-# and obtained the 'standard_transform' object
-    with rasterio.open(potential_yield.iloc[2,14].strip()) as src:
-            standard_transform = src.transform 
-            standard_crs= src.crs
-
-# Get the pixel size from the standard_transform
+     # Define colormap with an additional color for 'None'
+    cmap = plt.get_cmap('tab20b', len(crop_indices))
+    
+    with rasterio.open(potential_yield.iloc[2, 14].strip()) as src:
+        standard_transform = src.transform 
+        standard_crs= src.crs
+    
+    # Get the pixel size from the standard_transform
     pixel_size_x = standard_transform.a
     pixel_size_y = standard_transform.e
-
+    
     graph_bounds = shapefile.bounds
-
+    
     # Get the boundary values from the shapefile
     xmin = graph_bounds['minx'].min()
     xmax = graph_bounds['maxx'].max()
     ymin = graph_bounds['miny'].min()
     ymax = graph_bounds['maxy'].max()
+    
     # Calculate the number of rows and columns in the raster
     rows, cols = color_index.shape
-
+    
     # Create the transformation matrix for the raster
     transform = Affine(pixel_size_x, 0, xmin,
-                   0, pixel_size_y, ymax)
-
-# Create a memory file to store the raster
+                       0, pixel_size_y, ymax)
+    
+    # Create a memory file to store the raster
     with MemoryFile() as memfile:
         # Create a new raster dataset
         with memfile.open(driver='GTiff', height=rows, width=cols, count=1,
@@ -1612,27 +1607,27 @@ def crop_show(crop_array,shapefile):
                           transform=transform) as dataset:
             # Write the color_index array to the raster dataset
             dataset.write(color_index, 1)
-
+    
+            # Plot setup
+            fig, ax = plt.subplots()
+    
             # Plot the raster with shapefile boundaries
-            show((dataset, 1), ax=plt.gca(), cmap=cmap)
-        
+            show((dataset, 1), ax=ax, cmap=cmap, vmin=0, vmax=len(crop_indices)-1)
+    
             # Plot the shapefile boundary
-            shapefile.plot(ax=plt.gca(), facecolor='none', edgecolor='black')
+            shapefile.plot(ax=ax, facecolor='none', edgecolor='black')
             
-            # Create a legend for color-to-crop mapping
+            # Adjust legend_patches to include 'None'
             legend_patches = [mpatches.Patch(color=cmap(i), label=crop) for crop, i in crop_indices.items()]
             plt.legend(handles=legend_patches, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-
-
-
-    # Set the title and show the plot
-        plt.title('Crop Raster with Shapefile Boundaries')
-        plt.show()
+    
+            plt.title("Marginal Crop Distribution Across The Selected Region")
+            plt.show()
 
 
 # ### These are the final visualisation functions which output the net raw biomass energy potential from the marginal and the cropland respectively and show them with an interactive plotly graph.
 
-# In[6]:
+# In[3]:
 
 
 def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_level):
@@ -1682,7 +1677,7 @@ def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_
     fig.update_layout(
         barmode='group',
         xaxis_title='Years',
-        yaxis_title='Biomass Energy Potential from Cropland Land in PetaJoules',
+        yaxis_title='Biomass Energy Potential from Cropland Land <br> in PetaJoules',
         title='Cropland Biomass Energy Potential from different RCPs'
     )
     
@@ -1691,7 +1686,7 @@ def graph_plotter_cropland(shapefile, climate_model, water_supply_future, input_
     return fig, xarrays
 
 
-# In[4]:
+# In[2]:
 
 
 def graph_plotter_marginal(shapefile, climate_model, water_supply_future, input_level):
@@ -1718,7 +1713,7 @@ def graph_plotter_marginal(shapefile, climate_model, water_supply_future, input_
     fig.update_layout(
         barmode='group',
         xaxis_title='Time Periods',
-        yaxis_title='Biomass Energy Potential from Marginal Land in PetaJoules',
+        yaxis_title='Biomass Energy Potential from Marginal Land <br> in PetaJoules',
         title='Marginal Land Biomass Energy Potential from different RCPs in Time Periods'
     )
     
@@ -1727,7 +1722,7 @@ def graph_plotter_marginal(shapefile, climate_model, water_supply_future, input_
     return fig, xarrays, final_potentials
 
 
-# In[3]:
+# In[1]:
 
 
 def graph_plotter_all(shapefile, climate_model, water_supply_future, input_level, water_supply_2010):
@@ -1802,21 +1797,21 @@ def graph_plotter_all(shapefile, climate_model, water_supply_future, input_level
     fig_total.update_layout(
         barmode='group',
         xaxis_title='Time Periods',
-        yaxis_title='Biomass Energy Potential from Total Land in PetaJoules',
+        yaxis_title='Biomass Energy Potential from Total Land <br> in PetaJoules',
         title='Total Biomass Energy Potential from different RCPs in Time Periods'
     )
 
     fig_crop.update_layout(
         barmode='group',
         xaxis_title='Years',
-        yaxis_title='Biomass Energy Potential from Cropland Land in PetaJoules',
+        yaxis_title='Biomass Energy Potential from Cropland Land <br> in PetaJoules',
         title='Cropland Biomass Energy Potential from different RCPs'
     )
     
     fig_marg.update_layout(
         barmode='group',
         xaxis_title='Time Periods',
-        yaxis_title='Biomass Energy Potential from Marginal Land in PetaJoules',
+        yaxis_title='Biomass Energy Potential from Marginal Land <br> in PetaJoules',
         title='Marginal Land Biomass Energy Potential from different RCPs in Time Periods'
     )
     
