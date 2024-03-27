@@ -61,9 +61,9 @@ For a particular crop, the theoretical energy potential can be calculated as fol
 
 - The tool offers the ability to download all the data outputs in the form of NetCDF4 files.
 - The tool also produces several interactive graphs which can be used to compare the energy potentials at a glance. The figures below illustrate them for New Zealand and Nigeria respectively : 
-
-![Energy Potential from Total Land from New Zealand](NewZealand.jpg)
-![Energy Potential from Total Land from Nigeria](Nigeria.jpg)
+  
+  ![Energy Potential from Total Land from New Zealand](NewZealand.png)
+  ![Energy Potential from Total Land from Nigeria](Nigeria.png)
 
 - The tool also allows for flexibility incase someone wants to change the RPR,LHV and SAF values to suit the region of their choice.
 - Finally the Jupyter notebooks shows how the data in the generated arrays can be visualised using bokeh plots.
@@ -75,7 +75,7 @@ There is immense scope for further development of this tool and scope for adding
 - An additional economic layer could be added if the data for site-specific costs for crop residues can be identified. This will help us execute an optimisation routine that has the best cost to energy ratio in any region.   
 - There is scope for improving the output of the tool if site-specific values of RPR, SAF and LHV can be obtained.
 - Currently the tool only outputs theoretical energy potential but energy conversion pathways can be added and the user can be enabled to select the different pathways and the net actual energy output can be calculated this way. 
--This is the first instance of the tool and at the moment the geographic capabilities of the tool is being improved by focussing on selected countries at greater spatial resolution.
+- This is the first instance of the tool and at the moment the geographic capabilities of the tool is being improved by focussing on selected countries at greater spatial resolution.
  
 # Acknowledgements
 
