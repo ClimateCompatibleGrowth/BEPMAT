@@ -81,8 +81,4 @@ There is immense scope for further development of this tool and scope for adding
 
 This material has been produced with support from the Climate Compatible Growth (CCG) programme , which brings together leading research organizations and is led out of the STEER centre, Loughborough University. CCG is funded by UK aid from the UK government. However, the views expressed herein do not necessarily reflect the UK government’s official policies.
 
-![Energy Potential from Total Land from New Zealand](NewZealand.png)
-  
-![Energy Potential from Total Land from Nigeria](Nigeria.png)
-
 # References
