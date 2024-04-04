@@ -60,7 +60,7 @@ For a particular crop, the theoretical energy potential can be calculated as fol
 # Features
 
 - The tool offers the ability to download all the data outputs in the form of NetCDF4 files.
-- The tool also produces several interactive graphs which can be used to compare the energy potentials at a glance. The figures below illustrate them for New Zealand and Nigeria respectively:
+- The tool also produces several interactive graphs which can be used to compare the energy potentials at a glance. The figures below illustrate them for New Zealand and Nigeria respectively.
  
 ![Energy Potential from Total Land from New Zealand](NewZealand.png)
   
@@ -81,5 +81,9 @@ There is immense scope for further development of this tool and scope for adding
 # Acknowledgements
 
 This material has been produced with support from the Climate Compatible Growth (CCG) programme , which brings together leading research organizations and is led out of the STEER centre, Loughborough University. CCG is funded by UK aid from the UK government. However, the views expressed herein do not necessarily reflect the UK government’s official policies.
+
+![Energy Potential from Total Land from New Zealand](NewZealand.png)
+  
+![Energy Potential from Total Land from Nigeria](Nigeria.png)
 
 # References
