@@ -42,7 +42,7 @@ All the crop specific data used by `BEPMAT` has been obtained from the Global Ag
 
 # Methodology
 
-![Methodology Workflow.\label{fig:Workflow}](graphviz.png)
+![Methodology Workflow.\label{fig:Workflow}](Images/graphviz.png)
 
 The tool first identifies the total available land which can be used for growing crops. This is done by taking the whole area in the selected geography and excluding land utilisation types (LUTs) which are unfit for growing crops, we further remove protected areas, tree covered regions and water bodies. After this we are left with the total available land.This land is further split into two components : cropland and marginal land. The cropland is the land where the crops are currently being grown and we have assumed that this area remains constant throughout the analysis. However, the yield on this land changes with time, based on the climate, leading to different levels of crop production. Assuming the same crops grow on same chunks of land, we can obtain an estimate for the amount of energy that can be extracted from the cropland. Next we exclude this land from the total available land to find the remaining marginal land. On this marginal land, we iterate through a database of crops for their maximum agro-climatically attainable yield and select the best option. The yield of the chosen crop is multiplied by the area of marginal land to get the net production.
 
@@ -61,9 +61,9 @@ For a particular crop, the theoretical energy potential can be calculated as fol
 - The tool offers the ability to download all the data outputs in the form of NetCDF4 files.
 - The tool also produces several interactive graphs which can be used to compare the energy potentials at a glance. The figures below illustrate them for New Zealand and Nigeria respectively.
  
-![Energy Potential from Total Land from New Zealand](NewZealand.png)
+![Energy Potential from Total Land from New Zealand](Images/NewZealand.png)
   
-![Energy Potential from Total Land from Nigeria](Nigeria.png)
+![Energy Potential from Total Land from Nigeria](Images/Nigeria.png)
 
 - The tool also allows for flexibility incase someone wants to change the RPR,LHV and SAF values to suit the region of their choice.
 - Finally the Jupyter notebooks shows how the data in the generated arrays can be visualised using bokeh plots.
